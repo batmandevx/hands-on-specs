@@ -1,0 +1,77 @@
+- !<AssetImportMetadata/ad886dbc-67ff-4597-8f29-c8f53d00180f>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> fd652b0f-cabd-42dd-8a4b-99622e1f0619
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> fd652b0f-cabd-42dd-8a4b-99622e1f0619
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 6bf08062-32cf-4b07-be68-3565865d7917
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/6bf08062-32cf-4b07-be68-3565865d7917>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 1ae2cbe4-74bc-4d7b-a47c-bb9515530223
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    cameraObject: false
+    chestAnchor: false
+    controller: false
+    kneelCamera: false
+    pad1: false
+    pad2: false
+    runDemo: false
+    stageDelay: false
+    stopAtStage: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - controller: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
+      pad1: !<MappingBased.AssignableType_2> 00000000-0000-0000-0000-000000000000
+      pad2: !<MappingBased.AssignableType_3> 00000000-0000-0000-0000-000000000000
+      cameraObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      chestAnchor: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      runDemo: false
+      stopAtStage: !<float> 7.000000
+      stageDelay: 1.500000
+      kneelCamera: false
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CprDemoDriver – dev-only scripted walkthrough</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"References"}'
+    - '// @input AssignableType_1 controller {"hint":"Flow controller to drive"}'
+    - '// @input AssignableType_2 pad1 {"hint":"Pad 1 component"}'
+    - '// @input AssignableType_3 pad2 {"hint":"Pad 2 component"}'
+    - '// @input SceneObject cameraObject {"hint":"Camera object (for the editor-only kneeling pose)"}'
+    - '// @input SceneObject chestAnchor {"hint":"Chest anchor (camera looks here when kneeling)"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input bool runDemo {"hint":"Run the scripted walkthrough on lens start (dev/demo only)"}'
+    - '// @input float stopAtStage = 7 {"hint":"Stop after this stage (0 idle ... 7 summary)", "widget":"slider", "min":0, "max":7, "step":1}'
+    - '// @input float stageDelay = 1.5 {"hint":"Seconds between stages", "widget":"slider", "min":0.5, "max":5, "step":0.1}'
+    - '// @input bool kneelCamera = true {"hint":"Lens Studio editor/preview only (never on device): pose the camera as a rescuer kneeling beside the patient, ~0.8 m from the chest, from the first frame. Turn off to use WASD/QE navigation in Interactive Preview."}'
+    - '// @ui {"widget":"group_end"}'

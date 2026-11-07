@@ -1,0 +1,13 @@
+{
+  "enabledPlugins": {
+    "ls-clad@ls-extensions": true
+  },
+  "extraKnownMarketplaces": {
+    "ls-extensions": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/lens-studio-devs/ls-extensions.git"
+      }
+    }
+  }
+}

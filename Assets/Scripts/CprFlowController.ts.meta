@@ -1,0 +1,92 @@
+- !<AssetImportMetadata/80f7c42e-d176-4f22-be6d-45795f9c32ea>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 5e38963d-aabd-43ba-b13b-06a91a6bc4da
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 5e38963d-aabd-43ba-b13b-06a91a6bc4da
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> f52840f7-664f-40c3-b3cf-7cf3feabfdda
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/f52840f7-664f-40c3-b3cf-7cf3feabfdda>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 6e01cc36-b333-422f-9f96-d05d233d3172
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    analyseSeconds: false
+    bpm: false
+    chestAnchor: false
+    chimeTrack: false
+    clickTrack: false
+    clickVolume: false
+    counterMax: false
+    markToleranceCm: false
+    pad1: false
+    pad2: false
+    swapCueSeconds: false
+    swapIntervalSeconds: false
+    ui: false
+    zapTrack: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - ui: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
+      pad1: !<MappingBased.AssignableType_2> 00000000-0000-0000-0000-000000000000
+      pad2: !<MappingBased.AssignableType_3> 00000000-0000-0000-0000-000000000000
+      chestAnchor: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      clickTrack: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      chimeTrack: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      zapTrack: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      bpm: !<float> 110.000000
+      counterMax: !<float> 30.000000
+      swapIntervalSeconds: !<float> 120.000000
+      swapCueSeconds: !<float> 5.000000
+      analyseSeconds: !<float> 3.000000
+      markToleranceCm: !<float> 3.000000
+      clickVolume: 0.800000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CprFlowController – CPR coach flow + pacer</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"References"}'
+    - '// @input AssignableType_1 ui {"hint":"View module that renders every step (passive view)"}'
+    - '// @input AssignableType_2 pad1 {"hint":"Pad 1 (upper right chest) drag component"}'
+    - '// @input AssignableType_3 pad2 {"hint":"Pad 2 (lower left side) drag component"}'
+    - '// @input SceneObject chestAnchor {"hint":"Lower-sternum anchor on the mannequin chest; pacer content is parented here"}'
+    - '// @input Asset.AudioTrackAsset clickTrack {"hint":"Metronome click played on every beat (spatial, from the chest)"}'
+    - '// @input Asset.AudioTrackAsset chimeTrack {"hint":"Chime played when it is time to swap rescuers"}'
+    - '// @input Asset.AudioTrackAsset zapTrack {"hint":"Zap played when the shock is delivered"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float bpm = 110 {"hint":"Compression rate in beats per minute (guidance: 100-120)", "widget":"slider", "min":100, "max":120, "step":1}'
+    - '// @input float counterMax = 30 {"hint":"Counter loops from 1 up to this value (30 compressions per set)", "widget":"slider", "min":10, "max":30, "step":1}'
+    - "// @input float swapIntervalSeconds = 120 {\"hint\":\"Seconds of elapsed time between 'switch rescuers' cues\", \"widget\":\"slider\", \"min\":30, \"max\":240, \"step\":10}"
+    - '// @input float swapCueSeconds = 5 {"hint":"How long the swap cue stays up before clearing itself", "widget":"slider", "min":1, "max":10, "step":0.5}'
+    - "// @input float analyseSeconds = 3 {\"hint\":\"Length of the AED 'analysing' countdown before Shock appears\", \"widget\":\"slider\", \"min\":1, \"max\":6, \"step\":1}"
+    - '// @input float markToleranceCm = 3 {"hint":"How far (cm) the hand target may follow the pinch away from the lower sternum", "widget":"slider", "min":0, "max":6, "step":0.5}'
+    - '// @input float clickVolume = 0.8 {"hint":"Click volume", "widget":"slider", "min":0, "max":1, "step":0.05}'
+    - '// @ui {"widget":"group_end"}'

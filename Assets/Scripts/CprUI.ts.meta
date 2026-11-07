@@ -1,0 +1,173 @@
+- !<AssetImportMetadata/e3f71e4c-f30b-49ba-9124-b00aec0725e0>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 651ae33d-6fef-4439-a7cd-3c6a7b9d7dd2
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 651ae33d-6fef-4439-a7cd-3c6a7b9d7dd2
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> dcd88289-863f-4598-9bec-25be354c7e91
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/dcd88289-863f-4598-9bec-25be354c7e91>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: efd2337a-8455-40e0-8835-f03e25d4f114
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    accentColor: false
+    aedHereButton: false
+    aedTray: false
+    attentionColor: false
+    callCard: false
+    callCardText: false
+    callMessage: false
+    cameraObject: false
+    chestPrompt: false
+    counterText: false
+    cueText: false
+    doneButton: false
+    handTarget: false
+    helpArrivedButton: false
+    mannequinChest: false
+    mannequinChestVisual: false
+    pacerRing: false
+    pacerRingVisual: false
+    pad1: false
+    pad1Ghost: false
+    pad1Label: false
+    pad2: false
+    pad2Ghost: false
+    pad2Label: false
+    padHint: false
+    pulseAmount: false
+    ringDiameterCm: false
+    ringWidthCm: false
+    shockButton: false
+    shockFlash: false
+    skipButton: false
+    standClearCard: false
+    standClearCountdown: false
+    startButton: false
+    startOrb: false
+    startOrbLabel: false
+    startOrbVisual: false
+    summaryCard: false
+    swapCue: false
+    textColor: false
+    timerText: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - cameraObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      startOrb: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      startOrbVisual: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      startOrbLabel: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      callCard: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      callCardText: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      doneButton: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      chestPrompt: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      mannequinChest: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      mannequinChestVisual: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      handTarget: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pacerRing: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pacerRingVisual: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      counterText: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      timerText: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      cueText: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      swapCue: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      standClearCard: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      standClearCountdown: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      shockFlash: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      startButton: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      skipButton: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      aedHereButton: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      helpArrivedButton: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      shockButton: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      aedTray: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      padHint: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pad1: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pad2: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pad1Ghost: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pad2Ghost: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pad1Label: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pad2Label: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      summaryCard: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      accentColor: !<Vec4> {x: 0.400000, y: 1.000000, z: 1.000000, w: 1.000000}
+      attentionColor: !<Vec4> {x: 1.000000, y: 0.720000, z: 0.150000, w: 1.000000}
+      textColor: !<Vec4> {x: 1.000000, y: 1.000000, z: 1.000000, w: 1.000000}
+      callMessage: Call 112 / 911 on speaker.nShout for an AED.
+      ringDiameterCm: !<float> 20.000000
+      ringWidthCm: 1.400000
+      pulseAmount: 0.150000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CprUI – passive view for the CPR coach</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"References"}'
+    - '// @input SceneObject cameraObject {"hint":"User camera (labels and buttons turn to face it)"}'
+    - "// @input SceneObject startOrb {\"hint\":\"'Someone collapsed?' orb (collider + Interactable added here)\"}"
+    - '// @input SceneObject startOrbVisual {"hint":"Orb sphere mesh"}'
+    - '// @input SceneObject startOrbLabel {"hint":"Label above the orb"}'
+    - '// @input SceneObject callCard {"hint":"Call card root (BackPlate)"}'
+    - '// @input SceneObject callCardText {"hint":"Call card text"}'
+    - '// @input SceneObject doneButton {"hint":"Call card Done button"}'
+    - "// @input SceneObject chestPrompt {\"hint\":\"'Pinch the centre of the chest' prompt\"}"
+    - '// @input SceneObject mannequinChest {"hint":"Mannequin chest wrapper (collider + Interactable added here)"}'
+    - '// @input SceneObject mannequinChestVisual {"hint":"Mannequin chest mesh (hover tint)"}'
+    - '// @input SceneObject handTarget {"hint":"Hand target (two stacked hands)"}'
+    - '// @input SceneObject pacerRing {"hint":"Pacer ring root"}'
+    - '// @input SceneObject pacerRingVisual {"hint":"Pacer ring mesh"}'
+    - '// @input SceneObject counterText {"hint":"Counter text (1-30)"}'
+    - '// @input SceneObject timerText {"hint":"Elapsed timer text"}'
+    - '// @input SceneObject cueText {"hint":"Coaching cue text"}'
+    - '// @input SceneObject swapCue {"hint":"Swap-rescuers cue"}'
+    - '// @input SceneObject standClearCard {"hint":"Stand clear card root (BackPlate)"}'
+    - '// @input SceneObject standClearCountdown {"hint":"Analyse countdown text inside the stand clear card"}'
+    - '// @input SceneObject shockFlash {"hint":"Shock flash sphere"}'
+    - '// @input SceneObject startButton {"hint":"Start button"}'
+    - '// @input SceneObject skipButton {"hint":"Skip 2 minutes (dev/demo) button"}'
+    - '// @input SceneObject aedHereButton {"hint":"AED here button"}'
+    - '// @input SceneObject helpArrivedButton {"hint":"Help arrived button"}'
+    - '// @input SceneObject shockButton {"hint":"Shock button"}'
+    - '// @input SceneObject aedTray {"hint":"AED tray"}'
+    - '// @input SceneObject padHint {"hint":"Pad hint text"}'
+    - '// @input SceneObject pad1 {"hint":"Pad 1"}'
+    - '// @input SceneObject pad2 {"hint":"Pad 2"}'
+    - '// @input SceneObject pad1Ghost {"hint":"Pad 1 ghost outline"}'
+    - '// @input SceneObject pad2Ghost {"hint":"Pad 2 ghost outline"}'
+    - '// @input SceneObject pad1Label {"hint":"Label on pad 1"}'
+    - '// @input SceneObject pad2Label {"hint":"Label on pad 2"}'
+    - '// @input SceneObject summaryCard {"hint":"Handover summary card root (BackPlate)"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input vec4 accentColor = "{0.4, 1.0, 1.0, 1}" {"hint":"Primary accent (ring, counter)", "widget":"color"}'
+    - '// @input vec4 attentionColor = "{1.0, 0.72, 0.15, 1}" {"hint":"Attention colour (swap cue, prompts)", "widget":"color"}'
+    - '// @input vec4 textColor = "{1, 1, 1, 1}" {"hint":"Body text colour", "widget":"color"}'
+    - "// @input string callMessage = \"Call 112 / 911 on speaker.|Shout for an AED.\" {\"hint\":\"Call card message ('|' starts a new line)\"}"
+    - '// @input float ringDiameterCm = 20 {"hint":"Pacer ring outer diameter (cm)", "widget":"slider", "min":10, "max":30, "step":0.5}'
+    - '// @input float ringWidthCm = 1.4 {"hint":"Pacer ring band width (cm)", "widget":"slider", "min":0.4, "max":4, "step":0.1}'
+    - '// @input float pulseAmount = 0.15 {"hint":"Extra pulse size on each beat (0.15 = ring grows 15%)", "widget":"slider", "min":0, "max":0.4, "step":0.01}'
+    - '// @ui {"widget":"group_end"}'

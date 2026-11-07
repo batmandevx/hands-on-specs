@@ -1,0 +1,89 @@
+- !<AssetImportMetadata/f2ee8115-4ef3-4652-852d-604d5fa70a3e>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> cde930fa-c86f-4aea-abde-505eeba1cd2f
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> cde930fa-c86f-4aea-abde-505eeba1cd2f
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> bc753501-df88-4287-89ee-4b69d0fb8904
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/bc753501-df88-4287-89ee-4b69d0fb8904>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: a8de9aa1-181c-49bf-9a73-eafc081d37b5
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    cameraObject: false
+    ghost: false
+    ghostVisual: false
+    glowPulseHz: false
+    hoverColor: false
+    idleColor: false
+    labelOffset: false
+    outlineSize: false
+    outlineWidthCm: false
+    padVisual: false
+    placedColor: false
+    snapDistanceCm: false
+    wrongDropHint: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - ghost: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      padVisual: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      ghostVisual: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      wrongDropHint: Upper right chest
+      cameraObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      labelOffset: !<Vec3> {x: 0.000000, y: 1.000000, z: 7.500000}
+      outlineSize: !<Vec2> {x: 12.000000, y: 8.000000}
+      outlineWidthCm: 0.700000
+      glowPulseHz: 0.900000
+      snapDistanceCm: !<float> 8.000000
+      idleColor: !<Vec4> {x: 0.950000, y: 0.950000, z: 0.950000, w: 1.000000}
+      hoverColor: !<Vec4> {x: 0.450000, y: 1.000000, z: 1.000000, w: 1.000000}
+      placedColor: !<Vec4> {x: 0.350000, y: 1.000000, z: 0.450000, w: 1.000000}
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CprPad – drag-to-snap AED pad</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"References"}'
+    - '// @input SceneObject ghost {"hint":"The glowing outline on the body this pad belongs on"}'
+    - '// @input SceneObject padVisual {"hint":"Child with the pad mesh (tinted for hover / placed feedback)"}'
+    - '// @input SceneObject ghostVisual {"hint":"Child with the ghost mesh (turns green when this pad is placed)"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input string wrongDropHint = "Upper right chest" {"hint":"Placement label shown on the body outline, and as the hint when the pad is dropped in the wrong place"}'
+    - '// @input SceneObject cameraObject {"hint":"Camera the outline label turns to face (optional)"}'
+    - "// @input vec3 labelOffset = \"{0, 1, 7.5}\" {\"hint\":\"Where the outline label floats, in the ghost's local space (cm)\"}"
+    - '// @input vec2 outlineSize = {12,8} {"hint":"Outline size W x D (cm) -- matches the pad"}'
+    - '// @input float outlineWidthCm = 0.7 {"hint":"Outline band width (cm)", "widget":"slider", "min":0.2, "max":2, "step":0.1}'
+    - '// @input float glowPulseHz = 0.9 {"hint":"Glow pulse speed (pulses per second)", "widget":"slider", "min":0, "max":3, "step":0.1}'
+    - '// @input float snapDistanceCm = 8 {"hint":"Snap if released within this distance (cm) of its own ghost", "widget":"slider", "min":2, "max":15, "step":0.5}'
+    - '// @input vec4 idleColor = "{0.95, 0.95, 0.95, 1}" {"hint":"Pad colour while waiting on the tray", "widget":"color"}'
+    - '// @input vec4 hoverColor = "{0.45, 1.0, 1.0, 1}" {"hint":"Pad colour while aimed at / held", "widget":"color"}'
+    - '// @input vec4 placedColor = "{0.35, 1.0, 0.45, 1}" {"hint":"Pad + ghost colour once correctly placed", "widget":"color"}'
+    - '// @ui {"widget":"group_end"}'
