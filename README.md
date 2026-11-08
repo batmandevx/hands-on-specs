@@ -55,7 +55,7 @@ Hands On doesn't float a website in front of your face. It draws the guidance **
 | 7 · Handover for the paramedics | 8 · Start again | 9 · Tested with LEAF |
 |:---:|:---:|:---:|
 | <img src="devpost/screenshots/07-summary.png" width="260"/> | <img src="devpost/screenshots/09-restart.png" width="260"/> | <img src="devpost/screenshots/08-leaf.png" width="260"/> |
-| Total time, cycles, shocks, **hands-off time**, **compression fraction** and a timestamped event timeline. | One pinch resets everything for another practice run. | Every done criterion is checked automatically with real SIK pinches and drags. |
+| Total time, **first push at**, cycles, shocks, **hands-off time**, **longest pause**, **compression fraction** and a timestamped event timeline. | One pinch resets everything for another practice run. | Every done criterion is checked automatically with real SIK pinches and drags. |
 
 ---
 
@@ -68,10 +68,11 @@ stateDiagram-v2
     Idle --> Call: pinch "Someone collapsed?"
     Call --> MarkChest: Done (911 called, AED requested)
     MarkChest --> Compress: pinch the chest, then Start
-    Compress --> Swap: 2:00 elapsed
+    Compress --> Swap: 2:00 elapsed (no pads)
     Swap --> Compress: cue clears after 5 s
     Compress --> AED: "AED here"
     AED --> StandClear: both pads snapped on
+    Compress --> StandClear: 2:00 with pads on (AED re-analysis)
     StandClear --> Shock: analyse countdown
     Shock --> Compress: shock delivered, resume now
     Compress --> Handover: "Help arrived"
@@ -109,6 +110,8 @@ Every decision came out of the `plan-lens` interview and was checked against the
 - **Information on the thing it's about.** The ring sits on the breastbone, and the pad outlines sit where the pads go. Nothing hovers at face height.
 - **Show it when it's needed.** Only the current step is visible, with at most 3 big buttons. The swap cue appears at 2:00 and clears itself.
 - **Audio carries the load.** Your hands are busy and your eyes are on the patient, so a calm voice speaks each step while the 110 bpm click keeps going underneath.
+- **The AED behaves like a real AED.** Once both pads are on, the rhythm is re-analysed every 2 minutes: the pacer pauses for "Stand clear — analysing" and coaches the next shock. Between analyses the 2-minute boundary is the rescuer-swap cue instead.
+- **The handover speaks the paramedics' language.** Time down, time to first push, shocks, hands-off time, longest pause and compression fraction — the numbers research links to survival, with a timestamped timeline so nobody reconstructs the night from memory.
 - **Built for an additive display.** Light cyan, white and amber, because black renders as transparent on SPECS. Red is used only for **Shock**.
 - **Grab-and-drag as the hero interaction.** Dragging the AED pads uses a standard SIK interaction, so it works with a mouse in the preview, LEAF can test it, and it's the most memorable moment in the video.
 
@@ -165,8 +168,13 @@ LEAF scenarios in [`Assets/Tests/`](Assets/Tests/) drive the **real SIK interact
 | 3 | At 2:00 a chime plays and the amber "Switch rescuers" cue shows, then clears | `CprSwapCueScenario` | ✅ Pass |
 | 4 | Each AED pad can be dragged; it snaps only onto its correct spot, and a wrong drop returns it | `CprPadsScenario` | ✅ Pass |
 | 5 | With both pads on, **Shock** appears after "Stand clear"; pressing it resumes the pacer and counts the shock | `CprShockScenario` | ✅ Pass |
+| 6 | With pads on, every 2:00 the AED **re-analyses**: the pacer pauses, "Shock advised" returns, a second shock is coached and logged | `CprReanalysisScenario` | ⏳ Ready to run |
 
-Extra scenarios cover the paramedic handover timeline (`CprHandoverScenario`), restart (`CprRestartScenario`), voice coaching (`CprVoiceScenario`) and the push/rise bar (`CprPushBarScenario`).
+Extra scenarios cover the paramedic handover timeline — now including **time to first push** and **longest hands-off stretch** (`CprHandoverScenario`), restart (`CprRestartScenario`), voice coaching (`CprVoiceScenario`) and the push/rise bar (`CprPushBarScenario`).
+
+> Rows 1–5 were recorded passing in LEAF. `CprReanalysisScenario` (row 6) and the extended
+> handover assertions were added with the re-analysis loop and are ready to run; update the
+> status after the next LEAF pass.
 
 **Logic proven:** the flow, timing, pad snapping, shock loop and handover summary.
 **Feel unproven** (only real glasses can tell): comfort while moving up and down during compressions, real hand-tracking dropouts, and real body detection in place of the chest pinch.
@@ -209,6 +217,7 @@ devpost/
   screenshots/    preview captures of every step
 docs/
   HANDS-ON-playbook.md   idea analysis, interview notes, video script
+  demo-video-script.md   timed <3 min demo video shot list with narration
 Packages/         Spectacles Interaction Kit, UI Kit and other Lens Studio packages
 ```
 

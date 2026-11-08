@@ -3,15 +3,17 @@
  *
  * Owns: the step state machine, the 110 bpm pacer clock, the 1..30 counter,
  *       elapsed time, swap cue timing, AED pad progress, stand-clear analysis,
- *       shock count, cycles, and all audio cues.
+ *       shock count, cycles, the 2-minute AED re-analysis loop once pads are
+ *       on, and all audio cues.
  * Expects (@input): the CprUI view module, the two CprPad components, the
  *       ChestAnchor SceneObject (lower sternum), and the three audio tracks.
  * Must NOT: build or style UI (CprUI does that) or detect real compressions.
  *
  * Public, readable state (for LEAF): step, beatCount, counterValue,
  * elapsedSeconds, shockCount, cycles, pad1Placed, pad2Placed, swapCueVisible,
- * aedPresent, analyseSecondsLeft, chestMarked, plus the handover data
- * flowSeconds, handsOffSeconds, compressionFraction, events, runCount.
+ * aedPresent, analyseSecondsLeft, chestMarked, reanalysisCount, plus the
+ * handover data flowSeconds, handsOffSeconds, compressionFraction,
+ * firstPushSeconds, longestHandsOffSeconds, events, runCount.
  * Public methods (buttons/pinches call these): startFlow, callDone,
  * markChest(worldPos), startCompressions, skipTwoMinutes, aedHere, shock,
  * helpArrived, resetFlow, plus padPlaced(index) used by the pads.
@@ -141,6 +143,12 @@ export class CprFlowController extends BaseScriptComponent {
   public handsOffSeconds: number = 0
   /** Seconds the pacer actually ran (compressing). */
   public compressingSeconds: number = 0
+  /** Seconds from flow start to the first compression (clinical key metric). -1 before the first push. */
+  public firstPushSeconds: number = -1
+  /** Longest single stretch without compressions after CPR started. */
+  public longestHandsOffSeconds: number = 0
+  /** Number of AED re-analysis pauses triggered at 2-minute boundaries with pads on. */
+  public reanalysisCount: number = 0
   /** Number of completed runs that reached the summary (restart counter). */
   public runCount: number = 0
   private _events: CprEvent[] = []
@@ -172,6 +180,7 @@ export class CprFlowController extends BaseScriptComponent {
   private chimeAudio!: AudioComponent
   private zapAudio!: AudioComponent
   private keepGoingTimer: number = 0
+  private handsOffStreak: number = 0 // current stretch without compressions
 
   onAwake(): void {
     if (!this.ui || !this.pad1 || !this.pad2 || !this.chestAnchor) {
@@ -235,6 +244,10 @@ export class CprFlowController extends BaseScriptComponent {
     this.flowSeconds = 0
     this.handsOffSeconds = 0
     this.compressingSeconds = 0
+    this.firstPushSeconds = -1
+    this.longestHandsOffSeconds = 0
+    this.reanalysisCount = 0
+    this.handsOffStreak = 0
     this.keepGoingTimer = 0
     this._events = []
     this.lastBeatTime = -10
@@ -311,6 +324,8 @@ export class CprFlowController extends BaseScriptComponent {
     this.handsOffSeconds = 0
     this.compressingSeconds = 0
     this.keepGoingTimer = 0
+    this.handsOffStreak = 0
+    if (this.firstPushSeconds < 0) this.firstPushSeconds = this.flowSeconds
     this.addEvent("CPR started")
     this.ui.setCue(CprUI.DEFAULT_CUE, false)
     this.refreshView()
@@ -402,7 +417,13 @@ export class CprFlowController extends BaseScriptComponent {
     this.swapCueVisible = false
     this.ui.setSwapCue(false)
     this.ui.setSummary(this.elapsedSeconds, this.cycles, this.shockCount)
-    this.ui.setSummaryDetails(this.handsOffSeconds, this.compressionFraction, this._events)
+    this.ui.setSummaryDetails(
+      this.handsOffSeconds,
+      this.compressionFraction,
+      this.firstPushSeconds,
+      this.longestHandsOffSeconds,
+      this._events
+    )
     this.speak(VoiceLine.Summary)
     this.refreshView()
     this.log("helpArrived total=" + this.elapsedSeconds.toFixed(1) + " cycles=" + this.cycles + " shocks=" + this.shockCount)
@@ -425,8 +446,14 @@ export class CprFlowController extends BaseScriptComponent {
 
     const flowRunning = this.step !== CprStep.Idle && this.step !== CprStep.Summary
     if (flowRunning) this.flowSeconds += dt
-    if (pacerRunning) this.compressingSeconds += dt
-    else if (clockRunning) this.handsOffSeconds += dt
+    if (pacerRunning) {
+      this.compressingSeconds += dt
+      this.handsOffStreak = 0
+    } else if (clockRunning) {
+      this.handsOffSeconds += dt
+      this.handsOffStreak += dt
+      if (this.handsOffStreak > this.longestHandsOffSeconds) this.longestHandsOffSeconds = this.handsOffStreak
+    }
 
     if (clockRunning) {
       this.elapsedSeconds += dt
@@ -493,9 +520,29 @@ export class CprFlowController extends BaseScriptComponent {
     if (this.counterValue === this.counterMax) this.cycles += 1
   }
 
+  /**
+   * 2-minute boundary handler. Without pads: "switch rescuers" cue. With both
+   * pads on, a real AED re-analyses the rhythm every ~2 minutes, so the pacer
+   * pauses for Stand clear -> analysing -> Shock advised instead. If a boundary
+   * lands while a pause is already in progress it is skipped silently.
+   */
   private checkSwap(): void {
     if (this.elapsedSeconds + 1e-4 >= this.nextSwapAt) {
       this.nextSwapAt += this.swapIntervalSeconds
+      const padsOn = this.aedPresent && this.pad1Placed && this.pad2Placed
+      if (padsOn) {
+        if (this.step !== CprStep.Compressing) return
+        this.reanalysisCount += 1
+        this.addEvent("AED re-analysis")
+        this.speak(VoiceLine.StandClear)
+        this.playAudio(this.chimeAudio)
+        this.step = CprStep.StandClear
+        this.analyseSecondsLeft = this.analyseSeconds
+        this.ui.setStandClearCountdown(Math.ceil(this.analyseSecondsLeft))
+        this.refreshView()
+        this.log("reanalysis #" + this.reanalysisCount + " at " + this.elapsedSeconds.toFixed(1) + "s")
+        return
+      }
       this.swapCount += 1
       this.swapCueVisible = true
       this.swapCueTimeLeft = this.swapCueSeconds

@@ -378,12 +378,22 @@ export class CprUI extends BaseScriptComponent {
       shocks
   }
 
-  /** Adds hands-off time, compression fraction and the event timeline to the summary card. */
-  public setSummaryDetails(handsOffSeconds: number, fraction: number, events: CprTimelineEntry[]): void {
+  /** Adds first-push time, hands-off time, longest pause, compression fraction and the event timeline. */
+  public setSummaryDetails(
+    handsOffSeconds: number,
+    fraction: number,
+    firstPushSeconds: number,
+    longestHandsOffSeconds: number,
+    events: CprTimelineEntry[]
+  ): void {
     const pct = Math.round(Math.max(0, Math.min(1, fraction)) * 100)
-    const base = this.summaryT.text.split("\nHands-off")[0]
-    this.summaryT.text =
-      base + "\nHands-off time  " + CprUI.formatTime(handsOffSeconds) + "\nCompression fraction  " + pct + "%"
+    const base = this.summaryT.text.split("\nHands-off")[0].split("\nFirst push")[0]
+    let txt = base
+    if (firstPushSeconds >= 0) txt += "\nFirst push at  " + CprUI.formatTime(firstPushSeconds)
+    txt += "\nHands-off time  " + CprUI.formatTime(handsOffSeconds)
+    txt += "\nLongest pause  " + CprUI.formatTime(longestHandsOffSeconds)
+    txt += "\nCompression fraction  " + pct + "%"
+    this.summaryT.text = txt
     if (this.timelineT) {
       const shown = events.slice(-8)
       const lines: string[] = []
@@ -550,7 +560,7 @@ export class CprUI extends BaseScriptComponent {
     const body = global.scene.createSceneObject("SummaryCard_Text")
     body.setParent(this.summaryCard)
     body.getTransform().setLocalPosition(new vec3(-W / 2 + 1.6, -0.9, LABEL_Z))
-    this.summaryT = this.makeText(body, "Total time  00:00", 42, this.textColor)
+    this.summaryT = this.makeText(body, "Total time  00:00", 34, this.textColor)
     this.summaryT.horizontalAlignment = HorizontalAlignment.Left
     this.summaryT.layoutRect = Rect.create(0, W / 2 - 2.4, -(H - 6) / 2, (H - 6) / 2)
 

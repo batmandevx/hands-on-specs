@@ -63,5 +63,11 @@ export class CprHandoverScenario extends Scenario {
     const pct = Math.round(c.compressionFraction * 100)
     expect(summary.includes("Compression fraction  " + pct + "%")).toBe(true)
     expect(summary.includes("Shocks given  1")).toBe(true)
+    // Clinical metrics: time to first push and longest hands-off stretch.
+    expect(c.firstPushSeconds > 0).toBe(true)
+    expect(c.longestHandsOffSeconds > 0).toBe(true)
+    expect(c.longestHandsOffSeconds <= c.handsOffSeconds + 0.01).toBe(true)
+    expect(summary.includes("First push at  ")).toBe(true)
+    expect(summary.includes("Longest pause  ")).toBe(true)
   }
 }

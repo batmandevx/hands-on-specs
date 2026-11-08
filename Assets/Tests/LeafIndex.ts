@@ -9,6 +9,7 @@ import {CprHandoverScenario} from "./CprHandoverScenario"
 import {CprRestartScenario} from "./CprRestartScenario"
 import {CprVoiceScenario} from "./CprVoiceScenario"
 import {CprPushBarScenario} from "./CprPushBarScenario"
+import {CprReanalysisScenario} from "./CprReanalysisScenario"
 
 @component
 export class LeafIndex extends BaseScriptComponent {
@@ -23,5 +24,6 @@ export class LeafIndex extends BaseScriptComponent {
     {id: "cpr-7-restart", typename: CprRestartScenario.getTypeName()},
     {id: "cpr-8-voice", typename: CprVoiceScenario.getTypeName()},
     {id: "cpr-9-pushbar", typename: CprPushBarScenario.getTypeName()},
+    {id: "cpr-10-reanalysis", typename: CprReanalysisScenario.getTypeName()},
   ]
 }
