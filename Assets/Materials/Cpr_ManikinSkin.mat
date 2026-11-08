@@ -84,7 +84,7 @@
       value: 0
     baseColor:
       typeIdx: 5
-      value: {x: 0.760000, y: 0.820000, z: 0.900000, w: 1.000000}
+      value: {x: 0.930000, y: 0.800000, z: 0.700000, w: 1.000000}
     baseTex:
       typeIdx: 9
       value:
