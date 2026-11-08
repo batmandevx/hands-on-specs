@@ -1,0 +1,92 @@
+- !<AssetImportMetadata/12467f80-5336-4425-b230-848b5d46b05b>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> c2c63985-605e-463a-a8d2-2782d52d7951
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> c2c63985-605e-463a-a8d2-2782d52d7951
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> ac03ada9-5ce6-4e59-9a0b-c9f2277fbb22
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/ac03ada9-5ce6-4e59-9a0b-c9f2277fbb22>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 6977fb66-bb2f-4880-8164-e3506f0cd7d0
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    voAED: false
+    voCall: false
+    voCompress: false
+    voKeepGoing: false
+    voMarkChest: false
+    voPadWrong: false
+    voReady: false
+    voResume: false
+    voShockReady: false
+    voStandClear: false
+    voStart: false
+    voSummary: false
+    voSwap: false
+    volume: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - voStart: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voCall: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voMarkChest: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voReady: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voCompress: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voKeepGoing: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voSwap: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voAED: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voPadWrong: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voStandClear: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voShockReady: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voResume: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voSummary: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      volume: !<float> 1.000000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CprVoiceCoach – spoken coaching lines</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Voice clips"}'
+    - "// @input Asset.AudioTrackAsset voStart {\"hint\":\"'Someone collapsed' opener (flow start)\"}"
+    - '// @input Asset.AudioTrackAsset voCall {"hint":"Call 112/911 and shout for an AED"}'
+    - '// @input Asset.AudioTrackAsset voMarkChest {"hint":"Pinch the centre of the chest"}'
+    - '// @input Asset.AudioTrackAsset voReady {"hint":"Hands on the target, pinch Start"}'
+    - '// @input Asset.AudioTrackAsset voCompress {"hint":"Compressions started: push hard and fast"}'
+    - '// @input Asset.AudioTrackAsset voKeepGoing {"hint":"Periodic encouragement while compressing"}'
+    - '// @input Asset.AudioTrackAsset voSwap {"hint":"Switch rescuers now"}'
+    - '// @input Asset.AudioTrackAsset voAED {"hint":"AED arrived: place the pads"}'
+    - '// @input Asset.AudioTrackAsset voPadWrong {"hint":"Pad dropped in the wrong place"}'
+    - '// @input Asset.AudioTrackAsset voStandClear {"hint":"Stand clear, analysing"}'
+    - '// @input Asset.AudioTrackAsset voShockReady {"hint":"Shock advised, press Shock"}'
+    - '// @input Asset.AudioTrackAsset voResume {"hint":"Resume compressions after the shock"}'
+    - '// @input Asset.AudioTrackAsset voSummary {"hint":"Help arrived: hand over the summary"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float volume = 1 {"hint":"Voice volume", "widget":"slider", "min":0, "max":1, "step":0.05}'
+    - '// @ui {"widget":"group_end"}'

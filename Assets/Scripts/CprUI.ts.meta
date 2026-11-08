@@ -44,6 +44,8 @@
     helpArrivedButton: false
     mannequinChest: false
     mannequinChestVisual: false
+    offViewDegrees: false
+    overlayMaterial: false
     pacerRing: false
     pacerRingVisual: false
     pad1: false
@@ -54,6 +56,10 @@
     pad2Label: false
     padHint: false
     pulseAmount: false
+    pushBar: false
+    pushBarHeightCm: false
+    pushShare: false
+    restartButton: false
     ringDiameterCm: false
     ringWidthCm: false
     shockButton: false
@@ -69,6 +75,7 @@
     swapCue: false
     textColor: false
     timerText: false
+    viewArrow: false
   ScriptTypesHidden:
     {}
   ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
@@ -112,6 +119,10 @@
       pad1Label: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
       pad2Label: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
       summaryCard: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      restartButton: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      pushBar: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      viewArrow: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      overlayMaterial: !<reference.Material> 00000000-0000-0000-0000-000000000000
       accentColor: !<Vec4> {x: 0.400000, y: 1.000000, z: 1.000000, w: 1.000000}
       attentionColor: !<Vec4> {x: 1.000000, y: 0.720000, z: 0.150000, w: 1.000000}
       textColor: !<Vec4> {x: 1.000000, y: 1.000000, z: 1.000000, w: 1.000000}
@@ -119,6 +130,9 @@
       ringDiameterCm: !<float> 20.000000
       ringWidthCm: 1.400000
       pulseAmount: 0.150000
+      pushBarHeightCm: !<float> 8.000000
+      pushShare: 0.450000
+      offViewDegrees: !<float> 22.000000
   ScriptTypes:
     -
       {}
@@ -160,6 +174,10 @@
     - '// @input SceneObject pad1Label {"hint":"Label on pad 1"}'
     - '// @input SceneObject pad2Label {"hint":"Label on pad 2"}'
     - '// @input SceneObject summaryCard {"hint":"Handover summary card root (BackPlate)"}'
+    - "// @input SceneObject restartButton {\"hint\":\"'Start again' button shown on the summary\"}"
+    - '// @input SceneObject pushBar {"hint":"Push / rise depth-rhythm bar root (beside the hand target, opposite the counter)"}'
+    - '// @input SceneObject viewArrow {"hint":"Out-of-view arrow root (child of the camera)"}'
+    - '// @input Asset.Material overlayMaterial {"hint":"Transparent-capable material cloned for the push bar track and the arrow"}'
     - '// @ui {"widget":"group_end"}'
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"group_start", "label":"Settings"}'
@@ -170,4 +188,7 @@
     - '// @input float ringDiameterCm = 20 {"hint":"Pacer ring outer diameter (cm)", "widget":"slider", "min":10, "max":30, "step":0.5}'
     - '// @input float ringWidthCm = 1.4 {"hint":"Pacer ring band width (cm)", "widget":"slider", "min":0.4, "max":4, "step":0.1}'
     - '// @input float pulseAmount = 0.15 {"hint":"Extra pulse size on each beat (0.15 = ring grows 15%)", "widget":"slider", "min":0, "max":0.4, "step":0.01}'
+    - '// @input float pushBarHeightCm = 8 {"hint":"Push / rise bar height (cm)", "widget":"slider", "min":4, "max":14, "step":0.5}'
+    - "// @input float pushShare = 0.45 {\"hint\":\"Share of each beat spent on 'push' (rest is 'let it rise')\", \"widget\":\"slider\", \"min\":0.2, \"max\":0.7, \"step\":0.01}"
+    - '// @input float offViewDegrees = 22 {"hint":"Show the arrow when the chest is more than this many degrees off the view centre", "widget":"slider", "min":10, "max":40, "step":1}'
     - '// @ui {"widget":"group_end"}'

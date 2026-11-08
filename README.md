@@ -15,7 +15,13 @@ Hands On is a SPECS Lens that walks a bystander through hands-only CPR and an AE
 5. **Swap rescuers.** At 2:00 a chime plays and an amber cue says "Switch rescuers now". It clears itself after 5 seconds. A **⏩ 2 min** demo button skips ahead.
 6. **AED.** Press **AED here**. Ghost outlines show where the pads go: upper right chest and lower left side. Grab each pad and drag it onto its ghost. A correct drop snaps into place; a wrong drop bounces back with a hint.
 7. **Shock.** The Lens says "Stand clear", counts down while the AED analyses, then shows **Shock**. Pressing it resumes the pacer.
-8. **Handover.** Press **Help arrived** to see a summary of total time, cycles and shocks given for the paramedics.
+8. **Handover.** Press **Help arrived** to see a summary for the paramedics: total time, cycles, shocks given, **hands-off time**, **compression fraction**, and a timestamped event timeline (call, CPR start, rescuer swap, AED pads on, each shock). **Start again** resets everything for another run.
+
+### What makes it work on glasses
+- **Spoken coaching.** Your hands are on the chest, so audio carries the guidance. A calm voice speaks each step ("Push hard and fast", "Stand clear. Don't touch the patient", "Shock delivered. Resume compressions now") and says "Keep going" every 30 s. The 110 bpm click never stops; it just gets quieter while the voice speaks.
+- **Push / rise bar.** A slim bar beside your hands drops on every beat and refills, labelled PUSH and RISE. It teaches full chest recoil as well as rate. The hand target pulses with the beat.
+- **Everything lives on the patient.** The ring, count, timer, pad outlines and cards all sit on or beside the chest, in light colours that read on an additive display. Only the current step shows, with at most 3 buttons on screen.
+- **Never lose the patient.** If you look away during CPR, a small arrow points you back to the chest.
 
 ## Who it's for
 
@@ -33,14 +39,16 @@ The preview has no body detection, so the Lens can't find the chest by itself. I
 
 - **Planning:** Devpost Learn's [`plan-lens`](https://learn-specs.devpost.com/resources) skill interviewed me and checked the idea against AR design rules and what the preview can do. The approved brief is [`devpost/design-brief.md`](devpost/design-brief.md).
 - **Building:** Snap's **CLAD** agents (`ls-clad`) built the brief in **Lens Studio 5.24** through the **Lens Studio MCP**. The project started from SPECS › Base Template and uses Spectacles Interaction Kit and UI Kit.
-- **Testing:** **LEAF** scenarios cover each done criterion in the brief and run in the Lens Studio preview.
+- **Testing:** **LEAF** scenarios (`Assets/Tests/`) cover each done criterion in the brief, plus the handover timeline, restart, voice coaching and push bar. They run in the Lens Studio preview and drive the real SIK pinches and pad drags, not shortcuts into the logic.
+- **Audio:** the click, chime and shock sounds were synthesised with CLAD's `build-sfx`. The voice lines were generated offline with macOS text-to-speech.
 - **Screenshots** from the preview are in [`devpost/screenshots/`](devpost/screenshots/).
 
 ## Run it
 
 1. Open `HandsOn.esproj` in Lens Studio 5.24 or later.
 2. In the Preview panel, choose **Interactive Preview** with the Spectacles device.
-3. Move with WASD, use Q and E to go down and up, and right-drag to look around. Clicking acts as a pinch.
+3. The preview starts in a kneeling view over the patient's chest. Clicking acts as a pinch. Move with WASD, use Q and E to go down and up, and right-drag to look around. To start from a standing view instead, untick `kneelCamera` on the `CprDemoDriver` object.
+4. To watch a scripted walkthrough, tick `runDemo` on `CprDemoDriver`.
 
 ## Repo layout
 

@@ -32,11 +32,13 @@
     chestAnchor: false
     controller: false
     kneelCamera: false
+    kneelThenFree: false
     pad1: false
     pad2: false
     runDemo: false
     stageDelay: false
     stopAtStage: false
+    testLookAwayDeg: false
   ScriptTypesHidden:
     {}
   ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
@@ -55,6 +57,8 @@
       stopAtStage: !<float> 7.000000
       stageDelay: 1.500000
       kneelCamera: false
+      kneelThenFree: true
+      testLookAwayDeg: !<float> 0.000000
   ScriptTypes:
     -
       {}
@@ -71,7 +75,9 @@
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"group_start", "label":"Settings"}'
     - '// @input bool runDemo {"hint":"Run the scripted walkthrough on lens start (dev/demo only)"}'
-    - '// @input float stopAtStage = 7 {"hint":"Stop after this stage (0 idle ... 7 summary)", "widget":"slider", "min":0, "max":7, "step":1}'
+    - '// @input float stopAtStage = 7 {"hint":"Stop after this stage (0 idle ... 7 summary, 8 start again, 9-16 = second run)", "widget":"slider", "min":0, "max":16, "step":1}'
     - '// @input float stageDelay = 1.5 {"hint":"Seconds between stages", "widget":"slider", "min":0.5, "max":5, "step":0.1}'
     - '// @input bool kneelCamera = true {"hint":"Lens Studio editor/preview only (never on device): pose the camera as a rescuer kneeling beside the patient, ~0.8 m from the chest, from the first frame. Turn off to use WASD/QE navigation in Interactive Preview."}'
+    - '// @input bool kneelThenFree = true {"hint":"Editor only: keep Device Tracking ON and apply the kneel pose as an offset rig, so WASD / right-drag still move the view afterwards (movement is relative to the kneel pose). Off = fixed kneel pose."}'
+    - '// @input float testLookAwayDeg {"hint":"Dev check: turn the kneel pose away from the chest by this many degrees (yaw) to see the out-of-view arrow. Keep 0 for normal use.", "widget":"slider", "min":-90, "max":90, "step":5}'
     - '// @ui {"widget":"group_end"}'

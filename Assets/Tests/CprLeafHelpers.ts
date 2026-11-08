@@ -12,8 +12,17 @@ import {Interactable} from "SpectaclesInteractionKit.lspkg/Components/Interactio
 import {CprFlowController} from "../Scripts/CprFlowController"
 import {CprPad} from "../Scripts/CprPad"
 import {CprStep} from "../Scripts/CprTypes"
+import {CprVoiceCoach, VoiceLine} from "../Scripts/CprVoiceCoach"
 
-export {CprStep}
+export {CprStep, VoiceLine}
+
+export function voiceCoach(): CprVoiceCoach {
+  const so = findSceneObjectByName("CprVoice")
+  if (!so) throw new Error("CprVoice SceneObject not found")
+  const v = so.getComponent(CprVoiceCoach.getTypeName()) as CprVoiceCoach
+  if (!v) throw new Error("CprVoiceCoach not found on CprVoice")
+  return v
+}
 
 export function controller(): CprFlowController {
   const so = findSceneObjectByName("CprLogic")

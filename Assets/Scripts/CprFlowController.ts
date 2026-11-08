@@ -10,7 +10,8 @@
  *
  * Public, readable state (for LEAF): step, beatCount, counterValue,
  * elapsedSeconds, shockCount, cycles, pad1Placed, pad2Placed, swapCueVisible,
- * aedPresent, analyseSecondsLeft, chestMarked.
+ * aedPresent, analyseSecondsLeft, chestMarked, plus the handover data
+ * flowSeconds, handsOffSeconds, compressionFraction, events, runCount.
  * Public methods (buttons/pinches call these): startFlow, callDone,
  * markChest(worldPos), startCompressions, skipTwoMinutes, aedHere, shock,
  * helpArrived, resetFlow, plus padPlaced(index) used by the pads.
@@ -18,6 +19,13 @@
 import {CprUI} from "./CprUI"
 import {CprPad} from "./CprPad"
 import {CprStep} from "./CprTypes"
+import {CprVoiceCoach, VoiceLine} from "./CprVoiceCoach"
+
+/** One handover-timeline entry: seconds since the flow started + label. */
+export interface CprEvent {
+  time: number
+  label: string
+}
 
 export {CprStep}
 
@@ -53,6 +61,11 @@ export class CprFlowController extends BaseScriptComponent {
   @input
   @hint("Zap played when the shock is delivered")
   zapTrack!: AudioTrackAsset
+
+  @input
+  @hint("Spoken coaching lines (own AudioComponent, separate from the click)")
+  @allowUndefined
+  voice: CprVoiceCoach
   @ui.group_end
 
   @ui.separator
@@ -91,6 +104,20 @@ export class CprFlowController extends BaseScriptComponent {
   @hint("Click volume")
   @widget(new SliderWidget(0, 1, 0.05))
   clickVolume: number = 0.8
+
+  @input
+  @hint("Speak a coaching line on each step (hands are busy, so audio leads)")
+  voiceEnabled: boolean = true
+
+  @input
+  @hint("Click volume multiplier while a voice line plays (0.5 = duck by half)")
+  @widget(new SliderWidget(0, 1, 0.05))
+  voiceDuck: number = 0.5
+
+  @input
+  @hint("Seconds of compressing between 'keep going' encouragements")
+  @widget(new SliderWidget(10, 90, 5))
+  keepGoingSeconds: number = 30
   @ui.group_end
 
   // ---------- public readable state ----------
@@ -108,6 +135,26 @@ export class CprFlowController extends BaseScriptComponent {
   public chestMarked: boolean = false
   public analyseSecondsLeft: number = 0
   public markedChestWorldPos: vec3 = vec3.zero()
+  /** Seconds since startFlow (handover timeline clock). */
+  public flowSeconds: number = 0
+  /** Seconds without compressions after CPR started (stand clear / shock pauses). */
+  public handsOffSeconds: number = 0
+  /** Seconds the pacer actually ran (compressing). */
+  public compressingSeconds: number = 0
+  /** Number of completed runs that reached the summary (restart counter). */
+  public runCount: number = 0
+  private _events: CprEvent[] = []
+
+  /** Handover timeline (copy), oldest first. */
+  public get events(): CprEvent[] {
+    return this._events.slice()
+  }
+
+  /** Share of CPR time spent compressing, 0..1 (1 before any pause). */
+  public get compressionFraction(): number {
+    const total = this.compressingSeconds + this.handsOffSeconds
+    return total > 0 ? this.compressingSeconds / total : 1
+  }
 
   /** Seconds between beats: 60 / bpm (0.5454… s at 110 bpm). */
   public get beatInterval(): number {
@@ -124,6 +171,7 @@ export class CprFlowController extends BaseScriptComponent {
   private clickAudio!: AudioComponent
   private chimeAudio!: AudioComponent
   private zapAudio!: AudioComponent
+  private keepGoingTimer: number = 0
 
   onAwake(): void {
     if (!this.ui || !this.pad1 || !this.pad2 || !this.chestAnchor) {
@@ -152,13 +200,14 @@ export class CprFlowController extends BaseScriptComponent {
     this.ui.onAedHere.add(() => this.aedHere())
     this.ui.onShock.add(() => this.shock())
     this.ui.onHelpArrived.add(() => this.helpArrived())
+    this.ui.onRestart.add(() => this.restart())
 
     this.pad1.padIndex = 1
     this.pad2.padIndex = 2
     this.pad1.onPlaced.add(() => this.padPlaced(1))
     this.pad2.onPlaced.add(() => this.padPlaced(2))
-    this.pad1.onMissed.add((hint: string) => this.ui.setPadHint(hint, true))
-    this.pad2.onMissed.add((hint: string) => this.ui.setPadHint(hint, true))
+    this.pad1.onMissed.add((hint: string) => this.padMissed(hint))
+    this.pad2.onMissed.add((hint: string) => this.padMissed(hint))
   }
 
   // ======================= public API =======================
@@ -183,6 +232,13 @@ export class CprFlowController extends BaseScriptComponent {
     this.swapCueTimeLeft = 0
     this.resumeCueTimeLeft = 0
     this.nextSwapAt = this.swapIntervalSeconds
+    this.flowSeconds = 0
+    this.handsOffSeconds = 0
+    this.compressingSeconds = 0
+    this.keepGoingTimer = 0
+    this._events = []
+    this.lastBeatTime = -10
+    if (this.voice) this.voice.stopAll()
     this.pad1.resetPad()
     this.pad2.resetPad()
     this.ui.setHandTargetOffset(vec3.zero())
@@ -191,15 +247,27 @@ export class CprFlowController extends BaseScriptComponent {
     this.ui.setCue(CprUI.DEFAULT_CUE, false)
     this.ui.setSwapCue(false)
     this.ui.setPadHint("", false)
+    this.ui.setPulse(10, this.beatInterval)
     this.refreshView()
     this.log("reset")
+  }
+
+  /** "Start again" on the summary: full reset back to Idle (demo re-record). */
+  public restart(): void {
+    if (this.step !== CprStep.Summary) return
+    this.resetFlow()
+    this.log("restart (run " + (this.runCount + 1) + ")")
   }
 
   /** Pinch on the "Someone collapsed?" orb. */
   public startFlow(): void {
     if (this.step !== CprStep.Idle) return
     this.step = CprStep.Call
+    this.flowSeconds = 0
+    this._events = []
     this.refreshView()
+    this.speak(VoiceLine.Start)
+    this.speak(VoiceLine.Call, true)
     this.log("startFlow")
   }
 
@@ -207,7 +275,9 @@ export class CprFlowController extends BaseScriptComponent {
   public callDone(): void {
     if (this.step !== CprStep.Call) return
     this.step = CprStep.MarkChest
+    this.addEvent("Called 112/911")
     this.refreshView()
+    this.speak(VoiceLine.MarkChest, true) // queue: never cut off the "Call emergency services" line
     this.log("callDone")
   }
 
@@ -222,9 +292,11 @@ export class CprFlowController extends BaseScriptComponent {
     const offset = new vec3(ox, 0, oz)
     this.ui.setHandTargetOffset(offset)
     this.markedChestWorldPos = anchorT.getWorldTransform().multiplyPoint(offset)
+    const firstMark = this.step === CprStep.MarkChest
     this.chestMarked = true
     this.step = CprStep.Ready
     this.refreshView()
+    if (firstMark) this.speak(VoiceLine.Ready)
     this.log("markChest offset=(" + ox.toFixed(1) + "," + oz.toFixed(1) + ")")
   }
 
@@ -236,8 +308,13 @@ export class CprFlowController extends BaseScriptComponent {
     this.nextBeatAt = 0
     this.elapsedSeconds = 0
     this.nextSwapAt = this.swapIntervalSeconds
+    this.handsOffSeconds = 0
+    this.compressingSeconds = 0
+    this.keepGoingTimer = 0
+    this.addEvent("CPR started")
     this.ui.setCue(CprUI.DEFAULT_CUE, false)
     this.refreshView()
+    this.speak(VoiceLine.Compress)
     this.log("startCompressions bpm=" + this.bpm + " interval=" + this.beatInterval.toFixed(4))
   }
 
@@ -250,6 +327,8 @@ export class CprFlowController extends BaseScriptComponent {
     for (let i = 0; i < skippedBeats; i++) this.advanceCounter()
     this.beatCount += skippedBeats
     this.elapsedSeconds = target
+    this.flowSeconds += delta
+    this.compressingSeconds += delta
     this.pacerTime += delta
     this.nextBeatAt = this.pacerTime + this.beatInterval
     this.ui.setCounter(this.counterValue)
@@ -265,7 +344,9 @@ export class CprFlowController extends BaseScriptComponent {
     this.pad1.setActive(true)
     this.pad2.setActive(true)
     this.ui.setPadHint("Drag each pad onto its glowing outline", false)
+    this.addEvent("AED arrived")
     this.refreshView()
+    this.speak(VoiceLine.AED)
     this.log("aedHere")
   }
 
@@ -276,6 +357,8 @@ export class CprFlowController extends BaseScriptComponent {
     this.ui.setPadHint(index === 1 ? "Pad 1 placed" : "Pad 2 placed", false)
     this.log("padPlaced " + index)
     if (this.pad1Placed && this.pad2Placed && this.step === CprStep.Compressing) {
+      this.addEvent("AED pads on")
+      this.speak(VoiceLine.StandClear)
       this.step = CprStep.StandClear
       this.analyseSecondsLeft = this.analyseSeconds
       this.ui.setStandClearCountdown(Math.ceil(this.analyseSecondsLeft))
@@ -290,6 +373,8 @@ export class CprFlowController extends BaseScriptComponent {
   public shock(): void {
     if (this.step !== CprStep.ShockReady) return
     this.shockCount += 1
+    this.addEvent("Shock " + this.shockCount)
+    this.speak(VoiceLine.Resume)
     this.playAudio(this.zapAudio)
     this.ui.flashShock()
     this.step = CprStep.Compressing
@@ -312,9 +397,13 @@ export class CprFlowController extends BaseScriptComponent {
     )
       return
     this.step = CprStep.Summary
+    this.runCount += 1
+    this.addEvent("Help arrived")
     this.swapCueVisible = false
     this.ui.setSwapCue(false)
     this.ui.setSummary(this.elapsedSeconds, this.cycles, this.shockCount)
+    this.ui.setSummaryDetails(this.handsOffSeconds, this.compressionFraction, this._events)
+    this.speak(VoiceLine.Summary)
     this.refreshView()
     this.log("helpArrived total=" + this.elapsedSeconds.toFixed(1) + " cycles=" + this.cycles + " shocks=" + this.shockCount)
   }
@@ -334,6 +423,11 @@ export class CprFlowController extends BaseScriptComponent {
     const clockRunning =
       pacerRunning || this.step === CprStep.StandClear || this.step === CprStep.ShockReady
 
+    const flowRunning = this.step !== CprStep.Idle && this.step !== CprStep.Summary
+    if (flowRunning) this.flowSeconds += dt
+    if (pacerRunning) this.compressingSeconds += dt
+    else if (clockRunning) this.handsOffSeconds += dt
+
     if (clockRunning) {
       this.elapsedSeconds += dt
       this.ui.setTimer(this.elapsedSeconds)
@@ -350,6 +444,13 @@ export class CprFlowController extends BaseScriptComponent {
         guard++
       }
       this.ui.setPulse(this.pacerTime - this.lastBeatTime, this.beatInterval)
+
+      // Periodic "keep going" encouragement, only when no other line is playing.
+      this.keepGoingTimer += dt
+      if (this.keepGoingTimer >= this.keepGoingSeconds && !this.swapCueVisible) {
+        if (!this.voiceEnabled || !this.voice) this.keepGoingTimer = 0
+        else if (this.voice.sayIfIdle(VoiceLine.KeepGoing)) this.keepGoingTimer = 0
+      }
     }
 
     if (this.swapCueVisible) {
@@ -373,6 +474,7 @@ export class CprFlowController extends BaseScriptComponent {
         this.analyseSecondsLeft = 0
         this.step = CprStep.ShockReady
         this.refreshView()
+        this.speak(VoiceLine.ShockReady)
         this.log("shockReady")
       }
     }
@@ -397,8 +499,10 @@ export class CprFlowController extends BaseScriptComponent {
       this.swapCount += 1
       this.swapCueVisible = true
       this.swapCueTimeLeft = this.swapCueSeconds
+      this.addEvent("Rescuer swap")
       this.ui.setSwapCue(true)
       this.playAudio(this.chimeAudio)
+      this.speak(VoiceLine.Swap)
       this.log("swapCue at " + this.elapsedSeconds.toFixed(1) + "s")
     }
   }
@@ -423,9 +527,29 @@ export class CprFlowController extends BaseScriptComponent {
 
   private playAudio(a: AudioComponent): void {
     if (!a || !a.audioTrack) return
-    if (a === this.clickAudio) a.volume = this.clickVolume
+    if (a === this.clickAudio) {
+      const ducked = this.voiceEnabled && this.voice && this.voice.isSpeaking
+      a.volume = this.clickVolume * (ducked ? this.voiceDuck : 1)
+    }
     if (a.isPlaying()) a.stop(false)
     a.play(1)
+  }
+
+  private padMissed(hint: string): void {
+    this.ui.setPadHint(hint, true)
+    this.speak(VoiceLine.PadWrong)
+  }
+
+  private addEvent(label: string): void {
+    this._events.push({time: this.flowSeconds, label: label})
+  }
+
+  /** Speak a coaching line (interrupts, or queues after the current line). */
+  private speak(line: VoiceLine, queue: boolean = false): void {
+    if (!this.voiceEnabled || !this.voice) return
+    if (queue) this.voice.enqueue(line)
+    else this.voice.say(line)
+    this.keepGoingTimer = 0
   }
 
   private log(msg: string): void {

@@ -9,7 +9,8 @@
  * Must NOT: hold flow state or make flow decisions. It renders what
  *       CprFlowController pushes in (setters) and reports user intent through
  *       Event emitters (onOrbPinched, onDone, onChestPinched, onStart, onSkip,
- *       onAedHere, onShock, onHelpArrived).
+ *       onAedHere, onShock, onHelpArrived, onRestart). Also renders the
+ *       push/rise bar, the handover timeline and the out-of-view arrow.
  */
 import Event, {PublicApi} from "SpectaclesInteractionKit.lspkg/Utils/Event"
 import {Interactable} from "SpectaclesInteractionKit.lspkg/Components/Interaction/Interactable/Interactable"
@@ -18,11 +19,17 @@ import {Button} from "SpectaclesUIKit.lspkg/Scripts/Components/Button/Button"
 import {BackPlate} from "SpectaclesUIKit.lspkg/Scripts/BackPlate"
 import {CprStep} from "./CprTypes"
 
+/** Minimal shape of a handover-timeline entry (matches CprFlowController.CprEvent). */
+export interface CprTimelineEntry {
+  time: number
+  label: string
+}
+
 const LABEL_Z = 0.6 // content lift in front of a BackPlate / button face
 
 @component
 export class CprUI extends BaseScriptComponent {
-  public static readonly DEFAULT_CUE: string = "Push hard, 5-6 cm. Let it rise."
+  public static readonly DEFAULT_CUE: string = "Push hard, 5-6 cm.\nLet it rise."
   public static readonly READY_CUE: string = "Hands on the target. Pinch Start."
 
   @ui.label('<span style="color: #60A5FA;">CprUI – passive view for the CPR coach</span>')
@@ -62,6 +69,10 @@ export class CprUI extends BaseScriptComponent {
   @input @hint("Label on pad 1") pad1Label!: SceneObject
   @input @hint("Label on pad 2") pad2Label!: SceneObject
   @input @hint("Handover summary card root (BackPlate)") summaryCard!: SceneObject
+  @input @hint("'Start again' button shown on the summary") @allowUndefined restartButton: SceneObject
+  @input @hint("Push / rise depth-rhythm bar root (beside the hand target, opposite the counter)") @allowUndefined pushBar: SceneObject
+  @input @hint("Out-of-view arrow root (child of the camera)") @allowUndefined viewArrow: SceneObject
+  @input @hint("Transparent-capable material cloned for the push bar track and the arrow") @allowUndefined overlayMaterial: Material
   @ui.group_end
 
   @ui.separator
@@ -99,6 +110,21 @@ export class CprUI extends BaseScriptComponent {
   @hint("Extra pulse size on each beat (0.15 = ring grows 15%)")
   @widget(new SliderWidget(0, 0.4, 0.01))
   pulseAmount: number = 0.15
+
+  @input
+  @hint("Push / rise bar height (cm)")
+  @widget(new SliderWidget(4, 14, 0.5))
+  pushBarHeightCm: number = 8
+
+  @input
+  @hint("Share of each beat spent on 'push' (rest is 'let it rise')")
+  @widget(new SliderWidget(0.2, 0.7, 0.01))
+  pushShare: number = 0.45
+
+  @input
+  @hint("Show the arrow when the chest is more than this many degrees off the view centre")
+  @widget(new SliderWidget(10, 40, 1))
+  offViewDegrees: number = 22
   @ui.group_end
 
   // ---------- events (UI -> controller) ----------
@@ -110,6 +136,7 @@ export class CprUI extends BaseScriptComponent {
   private _onAedHere = new Event<void>()
   private _onShock = new Event<void>()
   private _onHelpArrived = new Event<void>()
+  private _onRestart = new Event<void>()
   public get onOrbPinched(): PublicApi<void> { return this._onOrbPinched.publicApi() }
   public get onDone(): PublicApi<void> { return this._onDone.publicApi() }
   public get onChestPinched(): PublicApi<vec3> { return this._onChestPinched.publicApi() }
@@ -118,6 +145,7 @@ export class CprUI extends BaseScriptComponent {
   public get onAedHere(): PublicApi<void> { return this._onAedHere.publicApi() }
   public get onShock(): PublicApi<void> { return this._onShock.publicApi() }
   public get onHelpArrived(): PublicApi<void> { return this._onHelpArrived.publicApi() }
+  public get onRestart(): PublicApi<void> { return this._onRestart.publicApi() }
 
   // ---------- view internals ----------
   private counterT!: Text
@@ -127,6 +155,15 @@ export class CprUI extends BaseScriptComponent {
   private countdownT!: Text
   private padHintT!: Text
   private summaryT!: Text
+  private timelineT: Text | null = null
+  private barFill: SceneObject | null = null
+  private barFillMat: Material | null = null
+  private barLabelT: Text | null = null
+  private barLabelObj: SceneObject | null = null
+  private arrowVisual: SceneObject | null = null
+  private arrowMat: Material | null = null
+  private arrowT: number = 0
+  private lastPushPhase: number = -1
   private ringMat: Material | null = null
   private chestMat: Material | null = null
   private chestBaseColor: vec4 = new vec4(0.86, 0.8, 0.74, 1)
@@ -134,10 +171,11 @@ export class CprUI extends BaseScriptComponent {
   private ringBaseScale: vec3 = new vec3(20, 3, 20)
   private faceList: SceneObject[] = []
   private swapOn: boolean = false
+  private padPhase: boolean = false
   private flashT: number = -1
   private orbT: number = 0
   private currentStep: CprStep = CprStep.Idle
-  private helpRow1Pos: vec3 = new vec3(7, 6, 15)
+  private helpRow1Pos: vec3 = new vec3(6, 5, 16)
   private helpRow2Pos: vec3 = new vec3(0, 2, 23)
 
   onAwake(): void {
@@ -148,8 +186,13 @@ export class CprUI extends BaseScriptComponent {
     this.buildButtons()
     this.buildAed()
     this.buildCards()
+    this.buildPushBar()
+    this.buildArrow()
     this.createEvent("UpdateEvent").bind(() => this.onUpdate())
-    this.createEvent("LateUpdateEvent").bind(() => this.faceUser())
+    this.createEvent("LateUpdateEvent").bind(() => {
+      this.faceUser()
+      this.updateArrow()
+    })
   }
 
   // ======================= setters (controller -> view) =======================
@@ -165,11 +208,15 @@ export class CprUI extends BaseScriptComponent {
     this.show(this.startOrb, step === CprStep.Idle)
     this.show(this.callCard, step === CprStep.Call)
     this.show(this.chestPrompt, step === CprStep.MarkChest)
-    this.show(this.handTarget, active)
+    // Hands off during stand clear / shock: the hand target hides with the pacer.
+    this.show(this.handTarget, step === CprStep.Ready || compressing)
     this.show(this.pacerRing, compressing)
+    this.show(this.pushBar, compressing)
+    this.show(this.restartButton, step === CprStep.Summary)
     this.show(this.counterText, compressing)
-    // The swap cue replaces the coaching cue in the same spot just above the ring.
-    this.show(this.cueText, (step === CprStep.Ready || compressing) && !this.swapOn)
+    // The swap cue / pad hint replace the coaching cue in the same spot just above the ring.
+    this.padPhase = padPhase
+    this.updateCueSlot()
     this.show(this.timerText, compressing || analysing)
     this.show(this.swapCue, compressing && this.swapOn)
     this.show(this.standClearCard, analysing)
@@ -183,7 +230,6 @@ export class CprUI extends BaseScriptComponent {
     }
     this.show(this.shockButton, step === CprStep.ShockReady)
     this.show(this.aedTray, padPhase)
-    this.show(this.padHint, padPhase)
     this.show(this.pad1Ghost, padPhase)
     this.show(this.pad2Ghost, padPhase)
     const padsVisible = aedPresent && (compressing || analysing)
@@ -216,10 +262,19 @@ export class CprUI extends BaseScriptComponent {
 
   public setSwapCue(on: boolean): void {
     this.swapOn = on
-    this.show(this.swapCue, on && this.currentStep === CprStep.Compressing)
-    const coaching = this.currentStep === CprStep.Ready || this.currentStep === CprStep.Compressing
-    this.show(this.cueText, coaching && !on)
+    this.updateCueSlot()
     this.setRingColor(on ? this.attentionColor : this.accentColor)
+  }
+
+  /** One text slot above the ring: swap cue > pad hint > coaching cue. */
+  private updateCueSlot(): void {
+    const s = this.currentStep
+    const compressing = s === CprStep.Compressing
+    const swap = compressing && this.swapOn
+    const pad = !swap && compressing && this.padPhase
+    this.show(this.swapCue, swap)
+    this.show(this.padHint, pad)
+    this.show(this.cueText, (s === CprStep.Ready || compressing) && !swap && !pad)
   }
 
   public setStandClearCountdown(n: number): void {
@@ -253,7 +308,40 @@ export class CprUI extends BaseScriptComponent {
     )
     if (this.ringMat) this.ringMat.mainPass.baseColor = c
     const hb = 0.7 + 0.3 * k
-    for (const m of this.handMats) m.mainPass.baseColor = new vec4(hb, hb, hb, 1)
+    for (const m of this.handMats) m.mainPass.baseColor = new vec4(hb * 0.85 + 0.15 * k, hb, hb, 1)
+    // Hand target: brief scale "thump" on each beat.
+    const hs = 1 + 0.12 * k
+    this.handTarget.getTransform().setLocalScale(new vec3(hs, 1, hs))
+    this.setPushPhase(sinceBeat, interval)
+  }
+
+  /** Push / rise bar: fill drops during the push share of the beat, refills while the chest rises. */
+  private setPushPhase(sinceBeat: number, interval: number): void {
+    if (!this.barFill) return
+    const ph = interval > 0 ? Math.max(0, sinceBeat) / interval : 1
+    let level = 1
+    const push = ph < this.pushShare
+    if (ph < this.pushShare) {
+      const u = ph / this.pushShare
+      level = 1 - (1 - Math.pow(1 - u, 2)) * 0.85 // ease-out down to 15%
+    } else if (ph < 1) {
+      const u = (ph - this.pushShare) / (1 - this.pushShare)
+      level = 0.15 + 0.85 * (u * u * (3 - 2 * u))
+    }
+    const h = Math.max(0.05, this.pushBarHeightCm * level)
+    const t = this.barFill.getTransform()
+    t.setLocalScale(new vec3(1, h, 1))
+    t.setLocalPosition(new vec3(0, -this.pushBarHeightCm / 2 + h / 2, 0.05))
+    const phase = push ? 0 : 1
+    if (phase !== this.lastPushPhase && this.barLabelT) {
+      this.lastPushPhase = phase
+      this.barLabelT.text = push ? "PUSH" : "RISE"
+      this.barLabelT.textFill.color = push ? this.accentColor : this.textColor
+    }
+    if (this.barFillMat) {
+      const c = push ? this.accentColor : new vec4(0.85, 1, 1, 1)
+      this.barFillMat.mainPass.baseColor = c
+    }
   }
 
   public flashShock(): void {
@@ -263,13 +351,26 @@ export class CprUI extends BaseScriptComponent {
 
   public setSummary(totalSeconds: number, cycles: number, shocks: number): void {
     this.summaryT.text =
-      "Handover summary\n\nTotal time  " +
+      "Total time  " +
       CprUI.formatTime(totalSeconds) +
       "\nCycles (30)  " +
       cycles +
       "\nShocks given  " +
-      shocks +
-      "\n\nTell the paramedics."
+      shocks
+  }
+
+  /** Adds hands-off time, compression fraction and the event timeline to the summary card. */
+  public setSummaryDetails(handsOffSeconds: number, fraction: number, events: CprTimelineEntry[]): void {
+    const pct = Math.round(Math.max(0, Math.min(1, fraction)) * 100)
+    const base = this.summaryT.text.split("\nHands-off")[0]
+    this.summaryT.text =
+      base + "\nHands-off time  " + CprUI.formatTime(handsOffSeconds) + "\nCompression fraction  " + pct + "%"
+    if (this.timelineT) {
+      const shown = events.slice(-8)
+      const lines: string[] = []
+      for (const e of shown) lines.push(CprUI.formatTime(e.time) + "  " + e.label)
+      this.timelineT.text = lines.length > 0 ? lines.join("\n") : "-"
+    }
   }
 
   /** Flat annulus in the XZ plane, both faces, centred on the origin. */
@@ -406,23 +507,179 @@ export class CprUI extends BaseScriptComponent {
   private buildCards(): void {
     this.standClearCard.createComponent("Component.Canvas")
     const bp = this.standClearCard.createComponent(BackPlate.getTypeName()) as BackPlate
-    bp.size = new vec2(30, 12)
+    bp.size = new vec2(22, 10)
     const title = global.scene.createSceneObject("StandClearCard_Title")
     title.setParent(this.standClearCard)
-    title.getTransform().setLocalPosition(new vec3(0, 2.2, LABEL_Z))
-    this.makeText(title, "Stand clear. Don't touch.", 58, this.attentionColor)
+    title.getTransform().setLocalPosition(new vec3(0, 1.9, LABEL_Z))
+    this.makeText(title, "Stand clear. Don't touch.", 54, this.attentionColor)
     this.liftZ(this.standClearCountdown, LABEL_Z)
     this.countdownT = this.makeText(this.standClearCountdown, "Analysing...", 48, this.textColor)
     this.faceList.push(this.standClearCard)
 
     this.summaryCard.createComponent("Component.Canvas")
     const sbp = this.summaryCard.createComponent(BackPlate.getTypeName()) as BackPlate
-    sbp.size = new vec2(28, 24)
+    const W = 32
+    const H = 16
+    sbp.size = new vec2(W, H)
+    const sTitle = global.scene.createSceneObject("SummaryCard_Title")
+    sTitle.setParent(this.summaryCard)
+    sTitle.getTransform().setLocalPosition(new vec3(0, H / 2 - 2.1, LABEL_Z))
+    this.makeText(sTitle, "Handover summary - tell the paramedics", 46, this.accentColor)
+
+    // Left column: key numbers (LEAF reads this object's text).
     const body = global.scene.createSceneObject("SummaryCard_Text")
     body.setParent(this.summaryCard)
-    body.getTransform().setLocalPosition(new vec3(0, 0, LABEL_Z))
-    this.summaryT = this.makeText(body, "Handover summary", 46, this.textColor)
+    body.getTransform().setLocalPosition(new vec3(-W / 2 + 1.6, -0.9, LABEL_Z))
+    this.summaryT = this.makeText(body, "Total time  00:00", 42, this.textColor)
+    this.summaryT.horizontalAlignment = HorizontalAlignment.Left
+    this.summaryT.layoutRect = Rect.create(0, W / 2 - 2.4, -(H - 6) / 2, (H - 6) / 2)
+
+    // Right column: event timeline.
+    const tl = global.scene.createSceneObject("SummaryCard_Timeline")
+    tl.setParent(this.summaryCard)
+    tl.getTransform().setLocalPosition(new vec3(1.6, -0.9, LABEL_Z))
+    this.timelineT = this.makeText(tl, "-", 37, new vec4(0.85, 0.95, 1, 1))
+    this.timelineT.horizontalAlignment = HorizontalAlignment.Left
+    this.timelineT.layoutRect = Rect.create(0, W / 2 - 2.4, -(H - 6) / 2, (H - 6) / 2)
+
+    const div = global.scene.createSceneObject("SummaryCard_Divider")
+    div.setParent(this.summaryCard)
+    div.getTransform().setLocalPosition(new vec3(0.6, -0.9, LABEL_Z * 0.5))
+    if (this.overlayMaterial) {
+      const rmv = div.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      rmv.mesh = CprUI.quadMesh(0.12, H - 6)
+      const m = this.overlayMaterial.clone()
+      m.mainPass.baseColor = new vec4(1, 1, 1, 0.35)
+      rmv.mainMaterial = m
+    }
     this.faceList.push(this.summaryCard)
+
+    if (this.restartButton) {
+      this.makeButton(this.restartButton, "Start again", 13, 3.8, "Primary", () => this._onRestart.invoke(), true)
+    }
+  }
+
+  private buildPushBar(): void {
+    if (!this.pushBar) return
+    const H = this.pushBarHeightCm
+    const W = 1.8
+    const track = global.scene.createSceneObject("PushBar_Track")
+    track.setParent(this.pushBar)
+    const trv = track.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+    trv.mesh = CprUI.quadMesh(W + 0.5, H + 0.5)
+    if (this.overlayMaterial) {
+      const m = this.overlayMaterial.clone()
+      m.mainPass.baseColor = new vec4(1, 1, 1, 0.22)
+      trv.mainMaterial = m
+    }
+    this.barFill = global.scene.createSceneObject("PushBar_Fill")
+    this.barFill.setParent(this.pushBar)
+    const frv = this.barFill.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+    frv.mesh = CprUI.quadMesh(W, 1)
+    if (this.ringMat) {
+      this.barFillMat = this.ringMat.clone()
+      frv.mainMaterial = this.barFillMat
+    }
+    this.barLabelObj = global.scene.createSceneObject("PushBar_Label")
+    this.barLabelObj.setParent(this.pushBar)
+    this.barLabelObj.getTransform().setLocalPosition(new vec3(0, H / 2 + 1.4, 0.1))
+    this.barLabelT = this.makeText(this.barLabelObj, "PUSH", 40, this.accentColor)
+    this.faceList.push(this.pushBar)
+    this.setPushPhase(10, 0.55)
+  }
+
+  private buildArrow(): void {
+    if (!this.viewArrow) return
+    const vis = global.scene.createSceneObject("OutOfViewArrow_Visual")
+    vis.setParent(this.viewArrow)
+    const rmv = vis.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+    rmv.mesh = CprUI.arrowMesh(3.2, 2.6, 1.0, 2.2)
+    const src = this.overlayMaterial ? this.overlayMaterial : this.ringMat
+    if (src) {
+      this.arrowMat = src.clone()
+      this.arrowMat.mainPass.baseColor = new vec4(0.4, 1, 1, 0.95)
+      rmv.mainMaterial = this.arrowMat
+    }
+    this.arrowVisual = vis
+    this.show(this.viewArrow, false)
+  }
+
+  /** Show a cyan arrow at the view edge pointing at the chest when it is out of view. */
+  private updateArrow(): void {
+    if (!this.viewArrow || !this.cameraObject) return
+    const s = this.currentStep
+    const relevant = s === CprStep.Compressing || s === CprStep.StandClear || s === CprStep.ShockReady
+    if (!relevant) {
+      this.show(this.viewArrow, false)
+      return
+    }
+    const camT = this.cameraObject.getTransform()
+    const target = this.handTarget.getTransform().getWorldPosition()
+    const local = camT.getInvertedWorldTransform().multiplyPoint(target)
+    const dist = local.length
+    if (dist < 0.001) return
+    const fwdCos = -local.z / dist // camera looks down local -Z
+    const angle = (Math.acos(Math.max(-1, Math.min(1, fwdCos))) * 180) / Math.PI
+    const out = angle > this.offViewDegrees
+    this.show(this.viewArrow, out)
+    if (!out) return
+    let dx = local.x
+    let dy = local.y
+    const len = Math.sqrt(dx * dx + dy * dy)
+    if (len < 0.001) {
+      dx = 0
+      dy = -1
+    } else {
+      dx /= len
+      dy /= len
+    }
+    this.arrowT += getDeltaTime()
+    const r = 14 + 0.8 * Math.sin(this.arrowT * 6)
+    const t = this.viewArrow.getTransform()
+    t.setLocalPosition(new vec3(dx * r, dy * r - 2, -55))
+    t.setLocalRotation(quat.fromEulerAngles(0, 0, Math.atan2(-dx, dy)))
+    t.setLocalScale(vec3.one())
+  }
+
+  /** Flat quad in the XY plane (faces +Z and -Z), centred. */
+  public static quadMesh(w: number, h: number): RenderMesh {
+    const mb = new MeshBuilder([
+      {name: "position", components: 3},
+      {name: "normal", components: 3},
+      {name: "texture0", components: 2}
+    ])
+    mb.topology = MeshTopology.Triangles
+    mb.indexType = MeshIndexType.UInt16
+    const x = w / 2
+    const y = h / 2
+    mb.appendVerticesInterleaved([-x, -y, 0, 0, 0, 1, 0, 0, x, -y, 0, 0, 0, 1, 1, 0, x, y, 0, 0, 0, 1, 1, 1, -x, y, 0, 0, 0, 1, 0, 1])
+    mb.appendIndices([0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2])
+    mb.updateMesh()
+    return mb.getMesh()
+  }
+
+  /** Flat arrow in the XY plane pointing +Y (head + stem), both faces. */
+  public static arrowMesh(headW: number, headH: number, stemW: number, stemH: number): RenderMesh {
+    const mb = new MeshBuilder([
+      {name: "position", components: 3},
+      {name: "normal", components: 3},
+      {name: "texture0", components: 2}
+    ])
+    mb.topology = MeshTopology.Triangles
+    mb.indexType = MeshIndexType.UInt16
+    const top = (headH + stemH) / 2
+    const neck = top - headH
+    const bottom = -top
+    const p = [
+      [0, top], [-headW / 2, neck], [headW / 2, neck],
+      [-stemW / 2, neck], [stemW / 2, neck], [stemW / 2, bottom], [-stemW / 2, bottom]
+    ]
+    const v: number[] = []
+    for (const q of p) v.push(q[0], q[1], 0, 0, 0, 1, 0, 0)
+    mb.appendVerticesInterleaved(v)
+    mb.appendIndices([0, 1, 2, 0, 2, 1, 3, 4, 5, 3, 5, 4, 3, 5, 6, 3, 6, 5])
+    mb.updateMesh()
+    return mb.getMesh()
   }
 
   // ======================= helpers =======================

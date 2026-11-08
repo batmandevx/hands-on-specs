@@ -35,12 +35,16 @@
     clickTrack: false
     clickVolume: false
     counterMax: false
+    keepGoingSeconds: false
     markToleranceCm: false
     pad1: false
     pad2: false
     swapCueSeconds: false
     swapIntervalSeconds: false
     ui: false
+    voice: false
+    voiceDuck: false
+    voiceEnabled: false
     zapTrack: false
   ScriptTypesHidden:
     {}
@@ -58,6 +62,7 @@
       clickTrack: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
       chimeTrack: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
       zapTrack: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      voice: !<MappingBased.AssignableType_4> 00000000-0000-0000-0000-000000000000
       bpm: !<float> 110.000000
       counterMax: !<float> 30.000000
       swapIntervalSeconds: !<float> 120.000000
@@ -65,6 +70,9 @@
       analyseSeconds: !<float> 3.000000
       markToleranceCm: !<float> 3.000000
       clickVolume: 0.800000
+      voiceEnabled: true
+      voiceDuck: 0.500000
+      keepGoingSeconds: !<float> 30.000000
   ScriptTypes:
     -
       {}
@@ -79,6 +87,7 @@
     - '// @input Asset.AudioTrackAsset clickTrack {"hint":"Metronome click played on every beat (spatial, from the chest)"}'
     - '// @input Asset.AudioTrackAsset chimeTrack {"hint":"Chime played when it is time to swap rescuers"}'
     - '// @input Asset.AudioTrackAsset zapTrack {"hint":"Zap played when the shock is delivered"}'
+    - '// @input AssignableType_4 voice {"hint":"Spoken coaching lines (own AudioComponent, separate from the click)"}'
     - '// @ui {"widget":"group_end"}'
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"group_start", "label":"Settings"}'
@@ -89,4 +98,7 @@
     - "// @input float analyseSeconds = 3 {\"hint\":\"Length of the AED 'analysing' countdown before Shock appears\", \"widget\":\"slider\", \"min\":1, \"max\":6, \"step\":1}"
     - '// @input float markToleranceCm = 3 {"hint":"How far (cm) the hand target may follow the pinch away from the lower sternum", "widget":"slider", "min":0, "max":6, "step":0.5}'
     - '// @input float clickVolume = 0.8 {"hint":"Click volume", "widget":"slider", "min":0, "max":1, "step":0.05}'
+    - '// @input bool voiceEnabled = true {"hint":"Speak a coaching line on each step (hands are busy, so audio leads)"}'
+    - '// @input float voiceDuck = 0.5 {"hint":"Click volume multiplier while a voice line plays (0.5 = duck by half)", "widget":"slider", "min":0, "max":1, "step":0.05}'
+    - "// @input float keepGoingSeconds = 30 {\"hint\":\"Seconds of compressing between 'keep going' encouragements\", \"widget\":\"slider\", \"min\":10, \"max\":90, \"step\":5}"
     - '// @ui {"widget":"group_end"}'
