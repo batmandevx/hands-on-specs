@@ -105,6 +105,7 @@ export class CprPad extends BaseScriptComponent {
   private glowT: number = 0
   private returnAnim: number = -1
   private returnFrom: vec3 = vec3.zero()
+  private missFlashT: number = 0
 
   onAwake(): void {
     const t = this.sceneObject.getTransform()
@@ -155,6 +156,7 @@ export class CprPad extends BaseScriptComponent {
   public resetPad(): void {
     this.placed = false
     this.returnAnim = -1
+    this.missFlashT = 0
     const t = this.sceneObject.getTransform()
     t.setLocalPosition(this.homeLocalPos)
     t.setLocalRotation(this.homeLocalRot)
@@ -202,6 +204,7 @@ export class CprPad extends BaseScriptComponent {
       print("[CprPad] pad " + this.padIndex + " missed (d=" + d.toFixed(1) + "cm) -> back to tray")
       this.returnFrom = this.sceneObject.getTransform().getLocalPosition()
       this.returnAnim = 0
+      this.missFlashT = 0.6
       this.setPadColor(this.idleColor)
       this._onMissed.invoke(this.wrongDropHint)
     }
@@ -280,6 +283,15 @@ export class CprPad extends BaseScriptComponent {
       if (dir.length > 0.001) t.setWorldRotation(quat.lookAt(dir.normalize(), vec3.up()))
     }
     if (this.placed) return
+    if (this.missFlashT > 0) {
+      // Wrong-drop feedback: the outline flashes amber while the pad flies back.
+      this.missFlashT -= getDeltaTime()
+      const k = Math.max(0, this.missFlashT / 0.6)
+      const amber = new vec4(1.0, 0.72, 0.15, 1)
+      if (this.ghostMat) this.ghostMat.mainPass.baseColor = new vec4(amber.x, amber.y, amber.z, 0.65 + 0.35 * k)
+      if (this.glowMat) this.glowMat.mainPass.baseColor = new vec4(amber.x, amber.y, amber.z, 0.08 + 0.25 * k)
+      return
+    }
     const k = 0.5 + 0.5 * Math.sin(this.glowT * Math.PI * 2 * this.glowPulseHz)
     const c = this.ghostBaseColor
     if (this.ghostMat) this.ghostMat.mainPass.baseColor = new vec4(c.x, c.y, c.z, 0.65 + 0.35 * k)

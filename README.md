@@ -181,6 +181,15 @@ Extra scenarios cover the paramedic handover timeline — now including **time t
 
 ---
 
+## Judging criteria → where the evidence lives
+
+| Criterion | What judges should look at |
+|---|---|
+| **Design** | The approved brief ([`devpost/design-brief.md`](devpost/design-brief.md)) with its five done criteria; the [step-by-step screenshots](#see-it-working); the [design decisions](#design-decisions) — one honest stand-in, one step at a time, information on the thing it's about. |
+| **Technical Implementation** | Built end-to-end by CLAD through the Lens Studio MCP (see [How it was built](#how-it-was-built)); [10 LEAF scenarios](#verified-with-leaf) driving the real SIK pinches and pad drags; fixed-grid beat scheduling with no clock drift; the AED re-analysis loop (`CprReanalysisScenario`). |
+| **Innovation** | An AED that behaves like a real AED (re-analysis every 2 min with pads on); a paramedic-grade handover (first push, hands-off time, longest pause, compression fraction, event timeline); a PUSH/RISE bar teaching full recoil; honest scope — it never fakes sensing it can't do. |
+| **Presentation** | The [demo video script](docs/demo-video-script.md) (timed <3 min shot list covering every step including the re-analysis loop) and the submission description draft ([`devpost/submission-description.md`](devpost/submission-description.md)). |
+
 ## Who it's for
 
 - **Anyone who isn't a medic:** family members, coworkers, people who did a CPR course years ago and have forgotten the details.

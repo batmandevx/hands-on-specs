@@ -175,6 +175,7 @@ export class CprUI extends BaseScriptComponent {
   private padPhase: boolean = false
   private flashT: number = -1
   private orbT: number = 0
+  private shockT: number = 0
   private currentStep: CprStep = CprStep.Idle
   private glowObj: SceneObject | null = null
   private glowMat: Material | null = null
@@ -915,6 +916,15 @@ export class CprUI extends BaseScriptComponent {
       this.orbT += dt
       const y = Math.sin(this.orbT * 2.0) * 1.0
       this.startOrbVisual.getTransform().setLocalPosition(new vec3(0, y, 0))
+    }
+    // Shock advised: the big red button breathes so it reads at a glance.
+    if (this.currentStep === CprStep.ShockReady) {
+      this.shockT += dt
+      const k = 1 + 0.05 * (0.5 + 0.5 * Math.sin(this.shockT * 7))
+      this.shockButton.getTransform().setLocalScale(new vec3(k, k, 1))
+    } else if (this.shockT !== 0) {
+      this.shockT = 0
+      this.shockButton.getTransform().setLocalScale(vec3.one())
     }
     if (this.flashT >= 0) {
       this.flashT += dt
