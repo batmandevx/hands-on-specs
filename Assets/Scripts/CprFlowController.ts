@@ -254,7 +254,7 @@ export class CprFlowController extends BaseScriptComponent {
     if (this.voice) this.voice.stopAll()
     this.pad1.resetPad()
     this.pad2.resetPad()
-    this.ui.setHandTargetOffset(vec3.zero())
+    this.ui.setHandTargetOffset(vec3.zero(), true)
     this.ui.setCounter(0)
     this.ui.setTimer(0)
     this.ui.setCue(CprUI.DEFAULT_CUE, false)

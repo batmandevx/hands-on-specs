@@ -176,6 +176,11 @@ export class CprUI extends BaseScriptComponent {
   private flashT: number = -1
   private orbT: number = 0
   private shockT: number = 0
+  private orbHovered: boolean = false
+  private counterPop: number = -1
+  private handOffsetTarget: vec3 = vec3.zero()
+  private handOffsetCurrent: vec3 = vec3.zero()
+  private handOffsetInit: boolean = false
   private currentStep: CprStep = CprStep.Idle
   private glowObj: SceneObject | null = null
   private glowMat: Material | null = null
@@ -264,6 +269,7 @@ export class CprUI extends BaseScriptComponent {
 
   public setCounter(n: number): void {
     this.counterT.text = n > 0 ? "" + n : ""
+    if (n > 0) this.counterPop = 0
   }
 
   public setTimer(seconds: number): void {
@@ -302,9 +308,19 @@ export class CprUI extends BaseScriptComponent {
   }
 
   /** Move the hand target + ring to the pinched spot (local offset on the chest anchor). */
-  public setHandTargetOffset(offset: vec3): void {
-    this.handTarget.getTransform().setLocalPosition(new vec3(offset.x, 0.4, offset.z))
-    this.pacerRing.getTransform().setLocalPosition(new vec3(offset.x, 0.3, offset.z))
+  public setHandTargetOffset(offset: vec3, instant: boolean = false): void {
+    this.handOffsetTarget = new vec3(offset.x, 0, offset.z)
+    if (instant || !this.handOffsetInit) {
+      this.handOffsetInit = true
+      this.handOffsetCurrent = this.handOffsetTarget
+      this.applyHandOffset(this.handOffsetCurrent)
+    }
+  }
+
+  /** Apply the anchor offset to the hand target and the ring. */
+  private applyHandOffset(o: vec3): void {
+    this.handTarget.getTransform().setLocalPosition(new vec3(o.x, 0.4, o.z))
+    this.pacerRing.getTransform().setLocalPosition(new vec3(o.x, 0.3, o.z))
   }
 
   /** Ring pulse: called every frame with time since the last beat. */
@@ -882,8 +898,12 @@ export class CprUI extends BaseScriptComponent {
     collider.shape = shape
     collider.fitVisual = false
     const it = so.createComponent(Interactable.getTypeName()) as Interactable
-    it.onHoverEnter.add(() => this.startOrbVisual.getTransform().setLocalScale(new vec3(12, 12, 12)))
-    it.onHoverExit.add(() => this.startOrbVisual.getTransform().setLocalScale(new vec3(10, 10, 10)))
+    it.onHoverEnter.add(() => {
+      this.orbHovered = true
+    })
+    it.onHoverExit.add(() => {
+      this.orbHovered = false
+    })
     it.onTriggerEnd.add(() => onTap())
   }
 
@@ -916,6 +936,26 @@ export class CprUI extends BaseScriptComponent {
       this.orbT += dt
       const y = Math.sin(this.orbT * 2.0) * 1.0
       this.startOrbVisual.getTransform().setLocalPosition(new vec3(0, y, 0))
+      const b = (this.orbHovered ? 12 : 10) * (1 + 0.05 * Math.sin(this.orbT * 2.8))
+      this.startOrbVisual.getTransform().setLocalScale(new vec3(b, b, b))
+    }
+    // The counter pops on every beat.
+    if (this.counterPop >= 0) {
+      this.counterPop += dt
+      const k = Math.min(1, this.counterPop / 0.18)
+      const s = 1 + 0.25 * (1 - k)
+      this.counterText.getTransform().setLocalScale(new vec3(s, s, 1))
+      if (k >= 1) {
+        this.counterPop = -1
+        this.counterText.getTransform().setLocalScale(vec3.one())
+      }
+    }
+    // The hand target + ring glide to the pinched spot instead of teleporting.
+    if (this.handOffsetInit && this.handOffsetCurrent.distance(this.handOffsetTarget) > 0.005) {
+      const d = this.handOffsetTarget.sub(this.handOffsetCurrent)
+      const step = Math.min(1, dt / 0.16) // ~0.16 s glide
+      this.handOffsetCurrent = this.handOffsetCurrent.add(d.uniformScale(step))
+      this.applyHandOffset(this.handOffsetCurrent)
     }
     // Shock advised: the big red button breathes so it reads at a glance.
     if (this.currentStep === CprStep.ShockReady) {

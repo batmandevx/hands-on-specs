@@ -57,6 +57,15 @@ Hands On doesn't float a website in front of your face. It draws the guidance **
 | <img src="devpost/screenshots/07-summary.png" width="260"/> | <img src="devpost/screenshots/09-restart.png" width="260"/> | <img src="devpost/screenshots/08-leaf.png" width="260"/> |
 | Total time, **first push at**, cycles, shocks, **hands-off time**, **longest pause**, **compression fraction** and a timestamped event timeline. | One pinch resets everything for another practice run. | Every done criterion is checked automatically with real SIK pinches and drags. |
 
+### Micro-interactions to watch for in the video
+
+- The hand target and beat ring **glide** to wherever you pinch the chest, then everything anchors there.
+- The counter **pops** on every beat while the ring blooms and the two-hands target thumps.
+- Drop a pad on the wrong outline and the outline **flashes amber** while the pad bounces home with a spoken hint.
+- "Shock advised": the big red button **breathes** until you press it — red is reserved for Shock.
+- The idle orb **bobs and breathes** and swells when you aim at it.
+- Look away mid-compressions and a cyan **arrow at the view edge** points back to the chest.
+
 ---
 
 ## The flow
