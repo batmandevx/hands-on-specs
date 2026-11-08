@@ -1,0 +1,56 @@
+- !<AssetImportMetadata/397408da-247c-49e0-90c4-d17c39fab198>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 87e43b46-32dc-4f70-a542-97c47451830f
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 87e43b46-32dc-4f70-a542-97c47451830f
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 6dc74139-2288-424d-843b-05d06a469b43
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/6dc74139-2288-424d-843b-05d06a469b43>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 83cba8a5-2059-4479-a771-855c3ac89be6
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    pantsColor: false
+    shirtColor: false
+    skinColor: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - skinColor: !<Vec4> {x: 0.930000, y: 0.800000, z: 0.700000, w: 1.000000}
+      shirtColor: !<Vec4> {x: 0.120000, y: 0.220000, z: 0.480000, w: 1.000000}
+      pantsColor: !<Vec4> {x: 0.170000, y: 0.210000, z: 0.320000, w: 1.000000}
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CprManikin – smooth training manikin stand-in</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input vec4 skinColor = "{0.93, 0.80, 0.70, 1}" {"hint":"Skin colour (matte)", "widget":"color"}'
+    - '// @input vec4 shirtColor = "{0.5, 0.7, 1.0, 1}" {"hint":"Shirt colour (mid blue: the display is additive, so dark colours turn see-through)", "widget":"color"}'
+    - '// @input vec4 pantsColor = "{0.55, 0.62, 0.78, 1}" {"hint":"Trousers colour", "widget":"color"}'
+    - '// @ui {"widget":"group_end"}'

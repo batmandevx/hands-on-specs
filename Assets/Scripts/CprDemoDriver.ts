@@ -145,8 +145,8 @@ export class CprDemoDriver extends BaseScriptComponent {
   /** Kneel pose (world): eye ~0.8 m from the chest on the patient's right, looking down at it. */
   private kneelPose(): {pos: vec3; rot: quat} {
     const a = this.chestAnchor.getTransform().getWorldPosition()
-    const target = a.add(new vec3(1, 0, 6))
-    const eye = a.add(new vec3(1, 56, 56))
+    const target = a.add(new vec3(-12, 0, 6))
+    const eye = a.add(new vec3(-6, 80, 92))
     let rot = quat.lookAt(eye.sub(target).normalize(), vec3.up())
     if (this.testLookAwayDeg !== 0) rot = quat.angleAxis((this.testLookAwayDeg * Math.PI) / 180, vec3.up()).multiply(rot)
     return {pos: eye, rot: rot}

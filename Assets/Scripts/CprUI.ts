@@ -18,6 +18,7 @@ import {InteractorEvent} from "SpectaclesInteractionKit.lspkg/Core/Interactor/In
 import {Button} from "SpectaclesUIKit.lspkg/Scripts/Components/Button/Button"
 import {BackPlate} from "SpectaclesUIKit.lspkg/Scripts/BackPlate"
 import {CprStep} from "./CprTypes"
+import {CprPad} from "./CprPad"
 
 /** Minimal shape of a handover-timeline entry (matches CprFlowController.CprEvent). */
 export interface CprTimelineEntry {
@@ -175,6 +176,16 @@ export class CprUI extends BaseScriptComponent {
   private flashT: number = -1
   private orbT: number = 0
   private currentStep: CprStep = CprStep.Idle
+  private glowObj: SceneObject | null = null
+  private glowMat: Material | null = null
+  private cueCard: SceneObject | null = null
+  private cueCardVisual: SceneObject | null = null
+  private cueCardFill: RenderMeshVisual | null = null
+  private cueCardEdge: RenderMeshVisual | null = null
+  private cueCardFillMat: Material | null = null
+  private cueCardEdgeMat: Material | null = null
+  private cueCardKey: string = ""
+  private iconSrcMat: Material | null = null
   private helpRow1Pos: vec3 = new vec3(6, 5, 16)
   private helpRow2Pos: vec3 = new vec3(0, 2, 23)
 
@@ -183,6 +194,8 @@ export class CprUI extends BaseScriptComponent {
     this.buildCallCard()
     this.buildChest()
     this.buildPacer()
+    this.buildGlow()
+    this.buildCueCard()
     this.buildButtons()
     this.buildAed()
     this.buildCards()
@@ -190,6 +203,7 @@ export class CprUI extends BaseScriptComponent {
     this.buildArrow()
     this.createEvent("UpdateEvent").bind(() => this.onUpdate())
     this.createEvent("LateUpdateEvent").bind(() => {
+      this.updateCueCard()
       this.faceUser()
       this.updateArrow()
     })
@@ -307,6 +321,11 @@ export class CprUI extends BaseScriptComponent {
       1
     )
     if (this.ringMat) this.ringMat.mainPass.baseColor = c
+    if (this.glowObj) {
+      const gs = 1 + 0.22 * k
+      this.glowObj.getTransform().setLocalScale(new vec3(gs, 1, gs))
+    }
+    if (this.glowMat) this.glowMat.mainPass.baseColor = new vec4(base.x, base.y, base.z, 0.05 + 0.1 * k)
     const hb = 0.7 + 0.3 * k
     for (const m of this.handMats) m.mainPass.baseColor = new vec4(hb * 0.85 + 0.15 * k, hb, hb, 1)
     // Hand target: brief scale "thump" on each beat.
@@ -428,7 +447,7 @@ export class CprUI extends BaseScriptComponent {
     this.liftZ(this.callCardText, LABEL_Z)
     this.makeText(this.callCardText, this.callMessage.split("|").join("\n"), 56, this.textColor)
     this.liftZ(this.doneButton, LABEL_Z)
-    this.makeButton(this.doneButton, "Done", 10, 3.8, "Primary", () => this._onDone.invoke(), false)
+    this.makeButton(this.doneButton, "Done", 10, 3.8, "Primary", () => this._onDone.invoke(), false, "call")
     this.faceList.push(this.callCard)
 
     this.makeText(this.chestPrompt, "Pinch the centre of the chest", 54, this.attentionColor)
@@ -482,19 +501,20 @@ export class CprUI extends BaseScriptComponent {
 
   private buildButtons(): void {
     this.makeButton(this.startButton, "Start", 10, 3.8, "Primary", () => this._onStart.invoke(), true)
-    this.makeButton(this.skipButton, ">> 2 min", 9, 3.4, "PrimaryNeutral", () => this._onSkip.invoke(), true)
-    this.makeButton(this.aedHereButton, "AED here", 10, 3.4, "Primary", () => this._onAedHere.invoke(), true)
+    this.makeButton(this.skipButton, "2 min", 9, 3.4, "PrimaryNeutral", () => this._onSkip.invoke(), true, "fast_forward")
+    this.makeButton(this.aedHereButton, "AED here", 11, 3.4, "Primary", () => this._onAedHere.invoke(), true, "medical_services")
     this.makeButton(
       this.helpArrivedButton,
       "Help arrived",
-      12,
+      13,
       3.4,
       "PrimaryNeutral",
       () => this._onHelpArrived.invoke(),
-      true
+      true,
+      "check"
     )
     // Shock: outline-style button over a red plate -- red is reserved for Shock only.
-    this.makeButton(this.shockButton, "SHOCK", 12, 4.6, "Ghost", () => this._onShock.invoke(), true)
+    this.makeButton(this.shockButton, "SHOCK", 12, 4.6, "Ghost", () => this._onShock.invoke(), true, "bolt")
   }
 
   private buildAed(): void {
@@ -682,6 +702,105 @@ export class CprUI extends BaseScriptComponent {
     return mb.getMesh()
   }
 
+  // ======================= glow, cue card, icons =======================
+
+  /** Soft additive-looking halo behind the pacer ring: stacked translucent annuli (brightest on the ring). */
+  private buildGlow(): void {
+    if (!this.overlayMaterial) return
+    const R = this.ringDiameterCm / 2
+    const inner = R - this.ringWidthCm
+    this.glowObj = global.scene.createSceneObject("PacerRing_Glow")
+    this.glowObj.setParent(this.pacerRing)
+    this.glowObj.getTransform().setLocalPosition(new vec3(0, -0.05, 0))
+    this.glowMat = this.overlayMaterial.clone()
+    this.glowMat.mainPass.baseColor = new vec4(this.accentColor.x, this.accentColor.y, this.accentColor.z, 0.05)
+    for (let i = 1; i <= 6; i++) {
+      const band = global.scene.createSceneObject("PacerRing_Glow_" + i)
+      band.setParent(this.glowObj)
+      const r = band.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      r.mesh = CprUI.buildRingMesh(R + i * 0.75, Math.max(0.5, inner - i * 0.55), 72)
+      r.mainMaterial = this.glowMat
+    }
+  }
+
+  /** Small rounded, light-translucent card just above the chest that carries the cue / pad hint / swap text. */
+  private buildCueCard(): void {
+    if (!this.overlayMaterial) return
+    this.cueCard = global.scene.createSceneObject("CueCard")
+    this.cueCard.setParent(this.cueText.getParent())
+    this.cueCard.getTransform().setLocalPosition(new vec3(0, 4.2, -13))
+    this.cueCardVisual = global.scene.createSceneObject("CueCard_Visual")
+    this.cueCardVisual.setParent(this.cueCard)
+    this.cueCardVisual.getTransform().setLocalRotation(quat.fromEulerAngles(Math.PI / 2, 0, 0))
+    this.cueCardFill = this.cueCardVisual.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+    this.cueCardFillMat = this.overlayMaterial.clone()
+    this.cueCardFillMat.mainPass.baseColor = new vec4(0.6, 0.85, 1, 0.2)
+    this.cueCardFill.mainMaterial = this.cueCardFillMat
+    const edge = global.scene.createSceneObject("CueCard_Edge")
+    edge.setParent(this.cueCardVisual)
+    edge.getTransform().setLocalPosition(new vec3(0, 0.02, 0))
+    this.cueCardEdge = edge.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+    this.cueCardEdgeMat = this.overlayMaterial.clone()
+    this.cueCardEdgeMat.mainPass.baseColor = new vec4(0.75, 0.95, 1, 0.55)
+    this.cueCardEdge.mainMaterial = this.cueCardEdgeMat
+    this.faceList.push(this.cueCard)
+    this.cueCard.enabled = false
+  }
+
+  /** Keep the card sized to the visible cue text and the text sitting on its face. */
+  private updateCueCard(): void {
+    if (!this.cueCard || !this.cameraObject) return
+    let active: SceneObject | null = null
+    let t: Text | null = null
+    if (this.swapCue.isEnabledInHierarchy) {
+      active = this.swapCue
+      t = this.swapT
+    } else if (this.padHint.isEnabledInHierarchy) {
+      active = this.padHint
+      t = this.padHintT
+    } else if (this.cueText.isEnabledInHierarchy) {
+      active = this.cueText
+      t = this.cueT
+    }
+    const on = active !== null && t !== null && t.text.length > 0
+    if (this.cueCard.enabled !== on) this.cueCard.enabled = on
+    if (!on || !t || !active) return
+    const lines = t.text.split("\n")
+    let maxChars = 0
+    for (const l of lines) maxChars = Math.max(maxChars, l.length)
+    const w = Math.max(10, maxChars * t.size * 0.0105 + 2.6)
+    const h = lines.length * t.size * 0.034 + 1.6
+    const key = w.toFixed(1) + "x" + h.toFixed(1)
+    if (key !== this.cueCardKey) {
+      this.cueCardKey = key
+      const r = Math.min(1.6, h * 0.35)
+      if (this.cueCardFill) this.cueCardFill.mesh = CprPad.roundedRectMesh(w, h, r, 0, true)
+      if (this.cueCardEdge) this.cueCardEdge.mesh = CprPad.roundedRectMesh(w, h, r, 0.18, false)
+    }
+    // Text floats just in front of the card, toward the user.
+    const cardPos = this.cueCard.getTransform().getWorldPosition()
+    const toCam = this.cameraObject.getTransform().getWorldPosition().sub(cardPos)
+    if (toCam.length < 0.001) return
+    const p = cardPos.add(toCam.normalize().uniformScale(0.5))
+    for (const so of [this.cueText, this.padHint, this.swapCue]) so.getTransform().setWorldPosition(p)
+  }
+
+  private iconTexture(name: string): Texture | null {
+    switch (name) {
+      case "call": return requireAsset("../Icons/call.png") as Texture
+      case "bolt": return requireAsset("../Icons/bolt.png") as Texture
+      case "medical_services": return requireAsset("../Icons/medical_services.png") as Texture
+      case "fast_forward": return requireAsset("../Icons/fast_forward.png") as Texture
+      case "check": return requireAsset("../Icons/check.png") as Texture
+    }
+    return null
+  }
+
+  private iconMaterial(): Material | null {
+    if (!this.iconSrcMat) this.iconSrcMat = requireAsset("../Materials/Cpr_HandTarget.mat") as Material
+    return this.iconSrcMat
+  }
+
   // ======================= helpers =======================
 
   private makeText(so: SceneObject, txt: string, size: number, color: vec4): Text {
@@ -709,7 +828,8 @@ export class CprUI extends BaseScriptComponent {
     h: number,
     style: string,
     onTap: () => void,
-    standalone: boolean
+    standalone: boolean,
+    icon: string = ""
   ): Button {
     if (standalone) so.createComponent("Component.Canvas")
     const b = so.createComponent(Button.getTypeName()) as Button
@@ -723,6 +843,23 @@ export class CprUI extends BaseScriptComponent {
     labelObj.setParent(so)
     labelObj.getTransform().setLocalPosition(new vec3(0, 0, LABEL_Z))
     this.makeText(labelObj, label, 42, this.textColor)
+    if (icon.length > 0) {
+      const tex = this.iconTexture(icon)
+      const src = this.iconMaterial()
+      if (tex && src) {
+        const iconSize = h * 0.58
+        labelObj.getTransform().setLocalPosition(new vec3(h * 0.34, 0, LABEL_Z))
+        const io = global.scene.createSceneObject(so.name + "_Icon")
+        io.setParent(so)
+        io.getTransform().setLocalPosition(new vec3(-w / 2 + h * 0.62, 0, LABEL_Z))
+        const ir = io.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+        ir.mesh = CprUI.quadMesh(iconSize, iconSize)
+        const m = src.clone()
+        m.mainPass.baseTex = tex
+        m.mainPass.baseColor = new vec4(1, 1, 1, 1)
+        ir.mainMaterial = m
+      }
+    }
     if (standalone) this.faceList.push(so)
     return b
   }
