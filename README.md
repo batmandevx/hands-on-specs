@@ -7,8 +7,12 @@
 **A SPECS Lens that guides a frightened bystander through hands-only CPR and an AED, one step at a time, drawn on the person in front of them.**
 
 Built for **Devpost · Learn AR with SPECS** · Planned with `plan-lens` · Built by Snap's **CLAD** agents through the **Lens Studio MCP** · Verified with **LEAF**
+<img width="1161" height="595" alt="image" src="https://github.com/user-attachments/assets/9da755e1-1b40-41a6-9f53-89b81e06f066" />
+<img width="1150" height="609" alt="image" src="https://github.com/user-attachments/assets/5bd4b9e8-f8ba-4562-ac15-7b41c6618c95" />
+<img width="1158" height="664" alt="image" src="https://github.com/user-attachments/assets/19a3c5c5-c901-43d3-87ef-e0b50ea955cf" />
 
 <img src="devpost/screenshots/03-pacer.png" width="420" alt="The CPR pacer: a cyan ring pulsing on the patient's chest with a hand target, a compression count, a timer and a push/rise bar"/>
+<img width="839" height="656" alt="image" src="https://github.com/user-attachments/assets/b3a85b5d-6250-424b-a392-2b8540033f23" />
 
 </div>
 
